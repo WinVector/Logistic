@@ -1,0 +1,17 @@
+
+Database to/from flatfile load/store utilities 
+ see: http://www.win-vector.com/blog/2011/01/sql-screwdriver/
+
+Also large scale (though not large number of categorical levels) regularized logistic regression code (including Hadoop implementation):
+  see: http://www.win-vector.com/blog/2010/12/large-data-logistic-regression-with-example-hadoop-code/
+       http://www.win-vector.com/blog/2011/09/the-simpler-derivation-of-logistic-regression/
+       http://www.win-vector.com/blog/2010/11/learn-a-powerful-machine-learning-tool-logistic-regression-and-beyond/
+
+All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http://www.gnu.org/copyleft/gpl.html )
+
+Requires:
+  http://www.junit.org/ JUnit 4.4 or newer
+  http://www.h2database.com/html/main.html h2 database 1.2.147
+  http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
+  http://commons.apache.org/cli/ Apache commons CLI (command line interface)
+
