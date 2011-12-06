@@ -13,5 +13,5 @@ Requires:
   http://www.junit.org/ JUnit 4.4 or newer
   http://www.h2database.com/html/main.html h2 database 1.2.147
   http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
-  http://commons.apache.org/cli/ Apache commons CLI (command line interface)
+  http://commons.apache.org/cli/ Apache commons CLI 1.2 or newer (command line interface)
 
