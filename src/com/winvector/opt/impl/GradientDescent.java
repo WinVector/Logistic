@@ -61,7 +61,8 @@ public final class GradientDescent implements VectorOptimizer {
 		public final double[] x0;
 		public final double[] dir;
 		public final double boxBound;
-		public VEval best = null;
+		public VEval min = null;
+		public VEval max = null;
 		public final Map<Double,VEval> cache = new LinkedHashMap<Double,VEval>() {
 			private static final long serialVersionUID = 1L;
 
@@ -77,7 +78,12 @@ public final class GradientDescent implements VectorOptimizer {
 			this.dir = dir;
 			this.boxBound = boxBound;
 			if((!Double.isInfinite(x0.fx))&&(!Double.isNaN(x0.fx))) {
-				this.best = x0;
+				if((min==null)||(x0.fx<min.fx)) {
+					min = x0;
+				}
+				if((max==null)||(x0.fx>max.fx)) {
+					max = x0;
+				}
 				cache.put(0.0,x0);
 			}
 		}
@@ -88,8 +94,13 @@ public final class GradientDescent implements VectorOptimizer {
 			if(null==fx) {
 				final double[] newX = newX(x0,dir,s,boxBound);
 				fx = f.eval(newX,false,false);
-				if((best==null)||(fx.fx>best.fx)) {
-					best = fx;
+				if((!Double.isInfinite(fx.fx))&&(!Double.isNaN(fx.fx))) {
+					if((min==null)||(fx.fx<min.fx)) {
+						min = fx;
+					}
+					if((max==null)||(fx.fx>max.fx)) {
+						max = fx;
+					}
 				}
 				cache.put(s,fx);
 			}
@@ -114,13 +125,13 @@ public final class GradientDescent implements VectorOptimizer {
 		final SFun g = new SFun(f,lastEval,lastEval.gx,boxBound);
 		final LinMax lmax = new LinMax();
 		lmax.maximize(g, lastEval.fx, unitScale, goal,20);
-		if(g.best==null) {
+		if(g.max==null) {
 			return StepStatus.linMinFailure;
 		}
-		if((bestEval[0]==null)||(g.best.fx>bestEval[0].fx)) {
-			bestEval[0] = g.best;
+		if((bestEval[0]==null)||(g.max.fx>bestEval[0].fx)) {
+			bestEval[0] = g.max;
 		}
-		if((g.best!=null)&&(g.best.fx>lastEval.fx)&&(g.best.fx>=goal)) {
+		if((g.max!=null)&&(g.max.fx>lastEval.fx)&&(g.max.fx>=goal)) {
 			return StepStatus.goodGradientDescentStep;
 		} else {
 			return StepStatus.noImprovement;

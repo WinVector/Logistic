@@ -12,8 +12,8 @@ import com.winvector.opt.impl.GradientDescent.SFun;
 
 // TODO: test
 public final class ConjugateGradientOptimizer implements VectorOptimizer {
-	private int debug = 0;
-	private final Log log = LogFactory.getLog(Newton.class);
+	private int debug = 2;
+	private final Log log = LogFactory.getLog(ConjugateGradientOptimizer.class);
 	private final int maxSteps = 100;
 	private final double minGNormSq = 1.0e-20;
 	private final double minMotionSq = 1.0e-14;
@@ -164,8 +164,8 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 				final SFun f1 = new SFun(f,roundStart,h,boxBound);
 				final LinMax lmax = new LinMax();
 				lmax.minimize(f1,roundStart.fx,1.0e-3,Double.MIN_VALUE,20);
-				if(null!=f1.best) {
-					cur = f1.best;
+				if(null!=f1.min) {
+					cur = f1.min;
 				}
 			} catch (Exception e) {
 				log.info("caught " + e);
