@@ -9,8 +9,8 @@ import java.io.Serializable;
  * @author johnmount
  *
  */
-public interface LinearContribution extends Serializable {
+public interface LinearContribution<T extends ExampleRow> extends Serializable {
 	int dim();
-	void addTerm(double[] x, boolean wantGrad, boolean wantHessian, ExampleRow d, VEval r);
+	void addTerm(double[] x, boolean wantGrad, boolean wantHessian, T d, VEval r);
 	double[] predict(final double[] x, final Datum ei);
 }

@@ -3,7 +3,7 @@ package com.winvector.logistic;
 
 import junit.framework.TestCase;
 
-import com.winvector.logistic.SigmoidLossMultinomial;
+import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
@@ -22,7 +22,7 @@ public class TestLogM extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex);
+		final VectorFn sl = new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex);
 		final double[] x0 = new double[sl.dim()];
 		for(int i=0;i<sl.dim();++i) {
 			x0[i] = i+1;
@@ -38,7 +38,7 @@ public class TestLogM extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
 		final double[] x0 = new double[sl.dim()];
 		for(int i=0;i<sl.dim();++i) {
 			x0[i] = i+1;
@@ -69,8 +69,8 @@ public class TestLogM extends TestCase {
 		final RExample ex = new RExample(dat);
 		final Newton nwt = new Newton();
 		final double reg = 0.1;
-		final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 		final double[] x0 = new double[sl.dim()];
 		final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
 		//System.out.println("x(" + reg + "): " + opt.x);

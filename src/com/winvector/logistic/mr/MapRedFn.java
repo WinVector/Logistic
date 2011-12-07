@@ -42,7 +42,7 @@ import com.winvector.variables.VariableEncodings;
 public final class MapRedFn implements VectorFn {
 	private final Log log = LogFactory.getLog(MapRedFn.class);
 	private static final String MRFIELDNAME = "MapRedFn.MRBlock";
-	private final LinearContribution underlying;
+	private final LinearContribution<ExampleRow> underlying;
 	private final WritableVariableList defs;
 	private final boolean useIntercept;
 	private final Configuration mrConfig;
@@ -50,7 +50,7 @@ public final class MapRedFn implements VectorFn {
 	private final String tmpPrefix;
 
 	
-	public MapRedFn(final LinearContribution underlying, final WritableVariableList defs, final boolean useIntercept, 
+	public MapRedFn(final LinearContribution<ExampleRow> underlying, final WritableVariableList defs, final boolean useIntercept, 
 			final String tmpPrefix, final Configuration mrConfig, final Path pathIn) {
 		this.underlying = underlying;
 		this.useIntercept = useIntercept;
@@ -66,13 +66,14 @@ public final class MapRedFn implements VectorFn {
 	}
 
 	public static final class JobStateDescr implements Writable {
-		public LinearContribution underlying = null;
+		public LinearContribution<ExampleRow> underlying = null;
 		public WritableVariableList defs = null;
 		public boolean useIntercept = true;
 		public double[] x = null;
 		public boolean wantGrad = false;
 		public boolean wantHessian = false;
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void readFields(final DataInput in) throws IOException {
 			underlying = null;
@@ -81,7 +82,7 @@ public final class MapRedFn implements VectorFn {
 			wantGrad = false;
 			wantHessian = false;
 			try {
-				underlying = (LinearContribution)SerialUtils.readSerialiazlabeFromString(in.readUTF());
+				underlying = (LinearContribution<ExampleRow>)SerialUtils.readSerialiazlabeFromString(in.readUTF());
 			} catch (ClassNotFoundException e) {
 				throw new IOException(e.toString());
 			}

@@ -21,6 +21,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.winvector.logistic.mr.MapRedFn.JobStateDescr;
 import com.winvector.opt.def.Datum;
+import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.util.BurstMap;
@@ -31,14 +32,14 @@ import com.winvector.variables.VariableEncodings;
 public final class MapRedScore {
 	private static final String MRFIELDNAME = "MapRedSc.MRBlock";
 	public static final String IDEALHEADERFIELD = "MapRedSc.IdealHeader";
-	private final LinearContribution underlying;
+	private final LinearContribution<ExampleRow> underlying;
 	private final WritableVariableList defs;
 	private final boolean useIntercept;
 	private final Configuration mrConfig;
 	private final Path pathIn;
 
 	
-	public MapRedScore(final LinearContribution underlying, final WritableVariableList defs, final boolean useIntercept, 
+	public MapRedScore(final LinearContribution<ExampleRow> underlying, final WritableVariableList defs, final boolean useIntercept, 
 			final Configuration mrConfig, final Path pathIn) {
 		this.underlying = underlying;
 		this.useIntercept = useIntercept;

@@ -29,7 +29,7 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.AdapterIterable;
+import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.DataFn;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
@@ -266,9 +266,9 @@ public class LogisticTrain {
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f) {
 		final Log log = LogFactory.getLog(this.getClass());
 		final VariableEncodings adapter = buildAdpater(f,true,trainSource);
-		final Iterable<ExampleRow> asTrain = new AdapterIterable(adapter,trainSource);
-		final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(sigmoidLoss,asTrain),0.1);
+		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
 		log.info("done training");

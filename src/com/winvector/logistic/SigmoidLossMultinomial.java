@@ -16,11 +16,11 @@ import com.winvector.opt.impl.HelperFns;
  * @author johnmount
  *
  */
-public final class SigmoidLossMultinomial implements LinearContribution {
+public final class SigmoidLossMultinomial implements LinearContribution<ExampleRow> {
 	private static final long serialVersionUID = 1L;
 	
-	private final int vdim;
-	private final int noutcomes;
+	public final int vdim;
+	public final int noutcomes;
 	
 	public SigmoidLossMultinomial(final int vdim, final int noutcomes) {
 		this.vdim = vdim;

@@ -34,7 +34,7 @@ public final class MapRedAccuracy {
 	private static final String MRFIELDNAME = "MapRedAc.MRBlock";
 	public static final long NGOODFIELD = 0;
 	public static final long NSEENFIELD = 1;
-	private final LinearContribution underlying;
+	private final LinearContribution<ExampleRow> underlying;
 	private final WritableVariableList defs;
 	private final boolean useIntercept;
 	private final Configuration mrConfig;
@@ -42,7 +42,7 @@ public final class MapRedAccuracy {
 	private final String tmpPrefix;
 
 	
-	public MapRedAccuracy(final LinearContribution underlying, final WritableVariableList defs, final boolean useIntercept, 
+	public MapRedAccuracy(final LinearContribution<ExampleRow> underlying, final WritableVariableList defs, final boolean useIntercept, 
 			final String tmpPrefix, final Configuration mrConfig, final Path pathIn) {
 		this.underlying = underlying;
 		this.useIntercept = useIntercept;

@@ -2,7 +2,7 @@ package com.winvector.logistic;
 
 import junit.framework.TestCase;
 
-import com.winvector.logistic.SigmoidLossMultinomial;
+import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
@@ -29,7 +29,7 @@ public class TestLog1 extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex);
+		final VectorFn sl = new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex);
 		final double[] x0 = new double[sl.dim()];
 		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
 	}
@@ -42,7 +42,7 @@ public class TestLog1 extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
 		final double[] x0 = new double[sl.dim()];
 		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
 	}
@@ -55,7 +55,7 @@ public class TestLog1 extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex);
+		final VectorFn sl = new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex);
 		final double[] x0 = new double[sl.dim()];
 		x0[1] = 1.0;
 		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
@@ -69,7 +69,7 @@ public class TestLog1 extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
 		final double[] x0 = new double[sl.dim()];
 		x0[1] = 1.0;
 		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
@@ -110,8 +110,8 @@ public class TestLog1 extends TestCase {
 		final Newton nwt = new Newton();
 		final double[] rsoln = {-0.8438,      5.1539,     -5.0729,      4.6308 };  // glm(y~x1+x2+x3,family=binomial(link='logit'),data=dat)
 		for(final double reg: new double[] { 0.0, 1.0e-3, 1.0e-2, 0.1, 1.0 }) {
-			final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
-			final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
+			final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
+			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 			final double[] x0 = new double[sl.dim()];
 			//System.out.println("start: " + x0);
 			final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
@@ -157,8 +157,8 @@ public class TestLog1 extends TestCase {
 		final RExample ex = new RExample(dat);
 		final Newton nwt = new Newton();
 		final double reg = 0.1;
-		final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 		final double[] x0 = new double[sl.dim()];
 		final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
 		final double accuracy = HelperFns.accuracy(sigmoidLoss,ex,opt.x);

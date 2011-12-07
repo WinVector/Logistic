@@ -31,7 +31,7 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.AdapterIterable;
+import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.DataFn;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
@@ -87,8 +87,8 @@ public class TestLRPath {
 	 * @param sigmoidLoss
 	 * @param x
 	 */
-	private void confirmEffectCalc(final Iterable<BurstMap> trainSource, final VariableEncodings adapter, 
-			final LinearContribution sigmoidLoss, final double[] x) {
+	private <T extends ExampleRow> void confirmEffectCalc(final Iterable<BurstMap> trainSource, final VariableEncodings adapter, 
+			final LinearContribution<T> sigmoidLoss, final double[] x) {
 		// confirm effects work like we think
 		for(final BurstMap row: trainSource) {
 			// score the standard way
@@ -133,9 +133,9 @@ public class TestLRPath {
 		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrain.buildVariableDefs(f,trainSource);
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
-		final Iterable<ExampleRow> asTrain = new AdapterIterable(adapter,trainSource);
-		final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn(sigmoidLoss,asTrain),0.1);
+		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
 		System.out.println("done training\t" + new Date());
@@ -223,8 +223,8 @@ public class TestLRPath {
 		query.append(tableName);
 		final Iterable<BurstMap> trainSource = new DBIterable(stmt,query.toString());
 		final Model model = (new LogisticTrain()).train(trainSource,f);
-		final LinearContribution sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
-		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new AdapterIterable(model.config,trainSource),model.coefs);
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new ExampleRowIterable(model.config,trainSource),model.coefs);
 		assertTrue(trainAccuracy>0.968);
 		handle.conn.close();
 		// clean up

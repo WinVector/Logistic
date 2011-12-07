@@ -8,20 +8,40 @@ import com.winvector.opt.def.ExampleRow;
 import com.winvector.util.BurstMap;
 import com.winvector.variables.VariableEncodings;
 
-public final class AdapterIterable implements Iterable<ExampleRow> {
+public abstract class AdapterIterableBase<T extends ExampleRow> implements Iterable<T> {
 
-	
 	private final Iterable<BurstMap> rawSource;
 	public final VariableEncodings adapter;
 	
-	public AdapterIterable(final VariableEncodings adapter, final Iterable<BurstMap> rawSource) {
+	protected AdapterIterableBase(final VariableEncodings adapter, final Iterable<BurstMap> rawSource) {
 		this.rawSource = rawSource;
 		this.adapter = adapter;
 	}
+	
+	protected SparseExampleRow buildSparseRow(final BurstMap row) {
+		final String resStr = row.getAsString(adapter.def().resultColumn);
+		if((resStr==null)||(resStr.length()<=0)) {
+			return null;
+		}
+		final SortedMap<Integer, Double> vec = adapter.vector(row);
+		if(vec==null) {
+			return null;
+		}
+		final Integer category = adapter.category(resStr);
+		final int catInt;
+		if(category!=null) {
+			catInt = category;
+		} else {
+			catInt = -1; // allowed to be missing
+		}
+		return new SparseExampleRow(vec,catInt);
+	}
+	
+	protected abstract T buildRow(final BurstMap row);
 		
-	private class AI implements Iterator<ExampleRow> {
+	private class AI implements Iterator<T> {
 		private Iterator<BurstMap> raw = rawSource.iterator();
-		private ExampleRow next = null;
+		private T next = null;
 
 		public AI() {
 			advance();
@@ -35,22 +55,7 @@ public final class AdapterIterable implements Iterable<ExampleRow> {
 					break;
 				}
 				final BurstMap row = raw.next();
-				final String resStr = row.getAsString(adapter.def().resultColumn);
-				if((resStr==null)||(resStr.length()<=0)) {
-					continue;
-				}
-				final SortedMap<Integer, Double> vec = adapter.vector(row);
-				if(vec==null) {
-					continue;
-				}
-				final Integer category = adapter.category(resStr);
-				final int catInt;
-				if(category!=null) {
-					catInt = category;
-				} else {
-					catInt = -1;
-				}
-				next = new SparseExampleRow(vec,catInt);
+				next = buildRow(row);
 			}
 		}
 
@@ -60,11 +65,11 @@ public final class AdapterIterable implements Iterable<ExampleRow> {
 		}
 
 		@Override
-		public ExampleRow next() {
+		public T next() {
 			if(!hasNext()) {
 				throw new NoSuchElementException();
 			}
-			final ExampleRow ret = next;
+			final T ret = next;
 			advance();
 			return ret;
 		}
@@ -76,7 +81,8 @@ public final class AdapterIterable implements Iterable<ExampleRow> {
 	}
 
 	@Override
-	public Iterator<ExampleRow> iterator() {
+	public Iterator<T> iterator() {
 		return new AI();
 	}
 }
+

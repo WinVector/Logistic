@@ -53,7 +53,7 @@ public class HelperFns {
 	}
 	
 	
-	public static double accuracy(final LinearContribution fn, final Iterable<ExampleRow> as, final double[] x) {
+	public static <T extends ExampleRow> double accuracy(final LinearContribution<T> fn, final Iterable<ExampleRow> as, final double[] x) {
 		int n = 0;
 		int nGood = 0;
 		for(final ExampleRow ei: as) {

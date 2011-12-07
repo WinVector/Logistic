@@ -22,9 +22,6 @@ public final class Formula implements Serializable {
 		}
 		resultColumn = sides[0].trim();
 		final String[] terms = sides[1].split("\\+");
-		if(terms.length<=0) {
-			throw new ParseException("not a well formed formula (needs terms): '" + f + "'", 0);
-		}
 		for(final String ti: terms) {
 			final int hashIndex = ti.indexOf('#');
 			final int caratIndex = ti.indexOf('^');
@@ -45,10 +42,9 @@ public final class Formula implements Serializable {
 				forcedCategorical.add(name);
 			} else {
 				final String name = ti.trim();
-				if(name.length()<=0) {
-					throw new ParseException("not a well formed formula (empty name): '" + f + "'", 0);
+				if(name.length()>0) {
+					variables.add(name);
 				}
-				variables.add(name);
 			}
 		}
 		variables.addAll(forcedCategorical);
