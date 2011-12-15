@@ -16,6 +16,7 @@ import java.util.Date;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -82,10 +83,13 @@ public class LogisticTrain {
 		cloptions.addOption(TRAINCLASSKEY,true,"(optional) alternate class to use for training");
 		cloptions.getOption(FORMULAKEY).setRequired(true);
 		final CommandLine cl = clparser.parse(cloptions, args);
+		final HelpFormatter hf = new HelpFormatter();
 		if((cl.getOptionValue(TRAINURIKEY)==null)==(cl.getOptionValue(TRAINHDLKEY)==null)) {
+			hf.printHelp("com.winvector.logistic.LogisticTrain", cloptions);
 			throw new org.apache.commons.cli.ParseException("Must set exacty one of --" + TRAINURIKEY + " or --" + TRAINHDLKEY);
 		}
 		if((cl.getOptionValue(TRAINHDLKEY)!=null)&&(cl.getOptionValue(TRAINTBLKEY)==null)) {
+			hf.printHelp("com.winvector.logistic.LogisticTrain", cloptions);
 			throw new org.apache.commons.cli.ParseException("If --" + TRAINHDLKEY + " is set then must specify a table with --" + TRAINTBLKEY);
 		}
 		return cl;

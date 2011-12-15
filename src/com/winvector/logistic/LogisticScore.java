@@ -17,6 +17,7 @@ import java.util.Date;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
@@ -50,11 +51,14 @@ public class LogisticScore {
 		for(final String optkey: new String[] {MODELKEY, RESULTFILEKEY} ) {
 			cloptions.getOption(optkey).setRequired(true);
 		}
+		final HelpFormatter hf = new HelpFormatter();
 		final CommandLine cl = clparser.parse(cloptions, args);
 		if((cl.getOptionValue(DATAURIKEY)==null)==(cl.getOptionValue(DATAHDLKEY)==null)) {
+			hf.printHelp("com.winvector.logistic.LogisticScore", cloptions);
 			throw new org.apache.commons.cli.ParseException("Must set exacty one of --" + DATAURIKEY + " or --" + DATAHDLKEY);
 		}
 		if((cl.getOptionValue(DATAHDLKEY)!=null)&&(cl.getOptionValue(DATATBLKEY)==null)) {
+			hf.printHelp("com.winvector.logistic.LogisticScore", cloptions);
 			throw new org.apache.commons.cli.ParseException("If --" + DATAHDLKEY + " is set then must specify a table with --" + DATATBLKEY);
 		}
 		return cl;
