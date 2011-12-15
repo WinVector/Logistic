@@ -21,7 +21,6 @@ public final class Newton implements VectorOptimizer {
 	private final LinearSolver lSolver = new DirectSolver();
 	private final double ridgeTerm = 1.0e-8;
 	private final double minGNormSQ = 1.0e-12;
-	private final double minImprovement = 1.0e-6;
 	private final double boxBound = 10.0; // TODO: set this
 	
 	
@@ -56,12 +55,10 @@ public final class Newton implements VectorOptimizer {
 	private static final class NewtonReturn {
 		public final StepStatus status;
 		public final double[] newX;
-		public final long linNanoTime;
 		
-		public NewtonReturn(final StepStatus status, final double[] newX, final long linNanoTime) {
+		public NewtonReturn(final StepStatus status, final double[] newX) {
 			this.status = status;
 			this.newX = newX;
-			this.linNanoTime = linNanoTime;
 		}
 	}
 	
@@ -69,10 +66,8 @@ public final class Newton implements VectorOptimizer {
 		final int dim = f.dim();
 		final double normsq = LinUtil.dot(lastEval.gx,lastEval.gx);
 		if(normsq<=minGNormSQ) {
-			return new NewtonReturn(StepStatus.smallGNorm,null,0);
+			return new NewtonReturn(StepStatus.smallGNorm,null);
 		}
-		final long startLinNano;
-		final long endLinNano;
 		double[][] hx = lastEval.hx;
 		if(ridgeTerm>0.0) { // Tikhonov regularization on the linear algebra (indep of any regularization on the overall fn).
 			hx = LinUtil.copy(hx);
@@ -80,51 +75,56 @@ public final class Newton implements VectorOptimizer {
 				hx[i][i] += ridgeTerm;
 			}
 		}
-		startLinNano = System.nanoTime();
 		double[] delta = null;
 		try {  // try a Newton step
 			delta = lSolver.solve(hx,lastEval.gx);
 		} catch (Exception ex) {
 			log.info("solve caught: " + ex);
 		}
-		endLinNano = System.nanoTime();
 		if(delta!=null) {
 			final double[] newX = newX(lastEval.x,delta,-1);
-			return new NewtonReturn(StepStatus.goodNewtonStep,newX,endLinNano-startLinNano);
+			return new NewtonReturn(StepStatus.goodNewtonStep,newX);
 		} else {
-			return new NewtonReturn(StepStatus.linFailure,null,endLinNano-startLinNano);
+			return new NewtonReturn(StepStatus.linFailure,null);
 		}
 	}
 	
 
 	
-	public VEval maximize(final VectorFn f, double[] x, final int maxRounds) {
-		if(null==x) {
-			x = new double[f.dim()];
+	public VEval maximize(final VectorFn f, double[] x0, final int maxRounds) {
+		if(null==x0) {
+			x0 = new double[f.dim()];
 		}
 		final VEval[] bestEval = new VEval[1];  // vector so gradient polish can alter value
+		bestEval[0] = f.eval(x0,true,true);
 		for(int stepNum=0;stepNum<maxRounds;++stepNum) {
-			final double goal = bestEval[0]==null?Double.NEGATIVE_INFINITY:Math.max(bestEval[0].fx + minImprovement,bestEval[0].fx + minImprovement*Math.abs(bestEval[0].fx));
-			final long nanoTimeStart = System.nanoTime();
-			final VEval lastEval = f.eval(x,true,true);
-			log.info("NewtonEval: " + stepNum + "\t" + lastEval.fx);
-			if((bestEval[0]==null)||(lastEval.fx>bestEval[0].fx)) {
-				bestEval[0] = lastEval;
+			if((null==bestEval[0].gx)||(null==bestEval[0].hx)) {
+				bestEval[0] = f.eval(bestEval[0].x,true,true);
 			}
-			if(lastEval.fx>=goal) {
-				final NewtonReturn nr = newtonStep(f,lastEval);
-				final long nanoTimeEnd= System.nanoTime();
-				final long totalNano = nanoTimeEnd - nanoTimeStart;
-				log.info("NewtonReturn: " + stepNum + "\t" + nr.status);
-				log.info("Newton work: "  + totalNano + "NS "
-					+ "( linear solver portion: " + nr.linNanoTime + "/" + totalNano + " = " + (nr.linNanoTime/(double)totalNano) + ")");
-				if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
-					x = nr.newX;
-				} else {
+			final double lastRecord = bestEval[0].fx;
+			final NewtonReturn nr = newtonStep(f,bestEval[0]);
+			boolean goodStep = false;
+			if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
+				final VEval newEval = f.eval(nr.newX,true,true);
+				if(newEval.fx>lastRecord) {
+					if(newEval.fx>lastRecord+1.0e-3) {
+						goodStep = true;
+					}
+					bestEval[0] = newEval;
+				}
+			}
+			if(!goodStep) {
+				// try a gradient step on last best
+				final GradientDescent gd = new GradientDescent();
+				final com.winvector.opt.impl.GradientDescent.StepStatus status = gd.gradientPolish(f, bestEval[0], bestEval);
+				if(status!=com.winvector.opt.impl.GradientDescent.StepStatus.goodGradientDescentStep) {
 					break;
 				}
-			} else {
-				log.info("Newton no-improve, ending");
+				if(bestEval[0].fx>lastRecord+1.0e-3) {
+					goodStep = true;
+				}
+			}
+			if(!goodStep) {
 				break;
 			}
 		}

@@ -58,7 +58,7 @@ public class TestRoundTrip {
 		TestLRPath.copyResourceToFile("com/winvector/logistic/exB.txt",trainFile);
 		final MapReduceLogisticTrain mrt = new MapReduceLogisticTrain();
 		mrt.setConf(new Configuration());
-		final double accuracy1 = mrt.run(trainFile.getAbsolutePath(),"y ~ x1 + x2", modelFile.getAbsolutePath(), 10);
+		final double accuracy1 = mrt.run(trainFile.getAbsolutePath(),"y ~ x1 + x2", modelFile.getAbsolutePath(), 5);
 		final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile));
 		final Model model = (Model)ois.readObject();		
 		ois.close();

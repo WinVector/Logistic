@@ -1,11 +1,15 @@
 package com.winvector.opt.imp;
 
+import junit.framework.TestCase;
+
 import com.winvector.opt.def.ScalarFn;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
+import com.winvector.opt.def.VectorOptimizer;
+import com.winvector.opt.impl.ConjugateGradientOptimizer;
+import com.winvector.opt.impl.GradientDescent;
 import com.winvector.opt.impl.LinMax;
-
-import junit.framework.TestCase;
+import com.winvector.opt.impl.Newton;
 
 public class TestOpt extends TestCase {
 	
@@ -68,6 +72,18 @@ public class TestOpt extends TestCase {
 				}
 			}
 			return r;
+		}
+	}
+	
+	public void testMax() {
+		final QuadFun f = new QuadFun(new double[] {0.2, -.62, 110.1, 11.1},-1.0);
+		final VectorOptimizer[] opts = { new Newton(), new ConjugateGradientOptimizer(), new GradientDescent() };
+		for(final VectorOptimizer opt: opts) {
+			final VEval r = opt.maximize(f, new double[f.x0.length], 10);
+			//System.out.println(r);
+			for(int i=0;i<f.x0.length;++i) {
+				assertTrue(Math.abs(r.x[i]-f.x0[i])<1.0e-2);
+			}
 		}
 	}
 

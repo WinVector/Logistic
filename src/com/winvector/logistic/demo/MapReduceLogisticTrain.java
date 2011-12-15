@@ -48,7 +48,7 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 		final String trainFileName = args[0]; // file with input data in name=value pairs separated by tabs
 		final String formulaStr = args[1]; // name of variable we expect to predict
 		final String resultFileName = args[2];
-		run(trainFileName,formulaStr,resultFileName,100);
+		run(trainFileName,formulaStr,resultFileName,5);
 		return 0;
 	}
 		

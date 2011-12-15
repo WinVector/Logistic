@@ -72,7 +72,7 @@ public class TestLogM extends TestCase {
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 		final double[] x0 = new double[sl.dim()];
-		final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
+		final VEval opt = nwt.maximize(sl,x0,10);
 		//System.out.println("x(" + reg + "): " + opt.x);
 		final double accuracy = HelperFns.accuracy(sigmoidLoss,ex,opt.x);
 		assertTrue(accuracy>=1.0);

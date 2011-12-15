@@ -13,7 +13,7 @@ import com.winvector.opt.def.VectorOptimizer;
 public final class ConjugateGradientOptimizer implements VectorOptimizer {
 	private int debug = 2;
 	private final Log log = LogFactory.getLog(ConjugateGradientOptimizer.class);
-	private final int maxSteps = 100;
+	private final int maxSteps = 1000;
 	private final double minGNormSq = 1.0e-20;
 	private final double minMotionSq = 1.0e-14;
 	private final double minHNormSq = 1.0e-12;

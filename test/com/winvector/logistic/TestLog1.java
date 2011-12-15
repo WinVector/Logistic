@@ -114,7 +114,7 @@ public class TestLog1 extends TestCase {
 			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 			final double[] x0 = new double[sl.dim()];
 			//System.out.println("start: " + x0);
-			final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
+			final VEval opt = nwt.maximize(sl,x0,10);
 			//System.out.println(opt);
 			//for(final ExampleRow ei: ex) {
 			//	double pred = SigmoidLoss.px(opt.x,ei.x);
@@ -160,7 +160,7 @@ public class TestLog1 extends TestCase {
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 		final double[] x0 = new double[sl.dim()];
-		final VEval opt = nwt.maximize(sl,x0,Integer.MAX_VALUE);
+		final VEval opt = nwt.maximize(sl,x0,10);
 		final double accuracy = HelperFns.accuracy(sigmoidLoss,ex,opt.x);
 		assertTrue(accuracy>=1.0);
 		for(int i=0;i<opt.x.length;++i) {

@@ -137,7 +137,7 @@ public class TestLRPath {
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
-		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
+		final VEval opt = nwt.maximize(sl,null,10);
 		System.out.println("done training\t" + new Date());
 		System.out.println("soln vector: " + LinUtil.toString(opt.x));
 		System.out.println("soln details:\n" + adapter.formatSoln(opt.x));

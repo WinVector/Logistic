@@ -270,7 +270,7 @@ public class LogisticTrain {
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
-		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
+		final VEval opt = nwt.maximize(sl,null,10);
 		log.info("done training");
 		log.info("soln vector: " + LinUtil.toString(opt.x));
 		log.info("soln details:\n" + adapter.formatSoln(opt.x));

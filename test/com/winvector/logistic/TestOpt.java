@@ -98,7 +98,7 @@ public class TestOpt extends TestCase {
 		x[1] = 0.1;
 		x[2] = -0.1;
 		final Newton opt = new Newton();
-		final VEval r = opt.maximize(f,x,Integer.MAX_VALUE);
+		final VEval r = opt.maximize(f,x,10);
 		assertNotNull(r);
 		assertNotNull(r.x);
 		assertEquals(dim,r.x.length);

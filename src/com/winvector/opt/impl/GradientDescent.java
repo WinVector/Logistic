@@ -17,8 +17,7 @@ import com.winvector.opt.impl.LinMax;
 public final class GradientDescent implements VectorOptimizer {
 	private final Log log = LogFactory.getLog(GradientDescent.class);
 	private final double minGNormSQ = 1.0e-12;
-	private final double minImprovement = 1.0e-6;
-	private final double boxBound = 100.0; // TODO: set this
+	private final double boxBound = 10000.0; // TODO: set this
 	
 	public enum StepStatus {
 		goodGradientDescentStep,
@@ -30,7 +29,6 @@ public final class GradientDescent implements VectorOptimizer {
 	
 	public StepStatus gradientPolish(final VectorFn f, final VEval lastEval, final VEval[] bestEval) {
 		// try for a partial steepest descent step (gradient)- usually not reached
-		final double goal = Math.max(lastEval.fx + minImprovement,lastEval.fx + minImprovement*Math.abs(lastEval.fx));
 		final int dim = f.dim();
 		double normGsq = 0.0;
 		double maxAbsG = 0.0;
@@ -51,7 +49,7 @@ public final class GradientDescent implements VectorOptimizer {
 		if((bestEval[0]==null)||(g.max.fx>bestEval[0].fx)) {
 			bestEval[0] = g.max;
 		}
-		if((g.max!=null)&&(g.max.fx>lastEval.fx)&&(g.max.fx>=goal)) {
+		if((g.max!=null)&&(g.max.fx>lastEval.fx)) {
 			return StepStatus.goodGradientDescentStep;
 		} else {
 			return StepStatus.noImprovement;
@@ -60,7 +58,7 @@ public final class GradientDescent implements VectorOptimizer {
 
 
 	@Override
-	public VEval maximize(VectorFn f, double[] x, int maxRounds) {
+	public VEval maximize(final VectorFn f, final double[] x, final int maxRounds) {
 		final VEval[] bestEval = new VEval[] { f.eval(x,true,false) };
 		log.info("GDstart: " + bestEval[0].fx);
 		for(int round=0;round<maxRounds;++round) {
@@ -70,9 +68,13 @@ public final class GradientDescent implements VectorOptimizer {
 			} else {
 				lastEval = f.eval(bestEval[0].x,true,false);
 			}
+			final double lastRecord = bestEval[0].fx;
 			final StepStatus ri = gradientPolish(f,lastEval,bestEval);
 			log.info("GDstatus: " + ri + "\t" + bestEval[0].fx);
 			if(!StepStatus.goodGradientDescentStep.equals(ri)) {
+				break;
+			}
+			if(!(bestEval[0].fx>lastRecord+1.0e-3)) {
 				break;
 			}
 		}
