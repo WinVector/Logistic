@@ -8,7 +8,6 @@ import org.apache.commons.logging.LogFactory;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.GradientDescent.SFun;
 
 // TODO: test
 public final class ConjugateGradientOptimizer implements VectorOptimizer {
@@ -161,7 +160,7 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 			hPrev = h;
 			final VEval roundStart = cur;
 			try {
-				final SFun f1 = new SFun(f,roundStart,h,boxBound);
+				final SFun f1 = new SFun(f,roundStart.x,h,boxBound,roundStart);
 				final LinMax lmax = new LinMax();
 				lmax.minimize(f1,roundStart.fx,1.0e-3,Double.MIN_VALUE,20);
 				if(null!=f1.min) {
