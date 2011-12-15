@@ -162,7 +162,7 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 			try {
 				final SFun f1 = new SFun(f,roundStart.x,h,boxBound,roundStart);
 				final LinMax lmax = new LinMax();
-				lmax.minimize(f1,roundStart.fx,1.0e-3,Double.MIN_VALUE,20);
+				lmax.minimize(f1,roundStart.fx,1.0e-3,20);
 				if(null!=f1.min) {
 					cur = f1.min;
 				}

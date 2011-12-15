@@ -44,7 +44,7 @@ public final class GradientDescent implements VectorOptimizer {
 		final double unitScale = 1.0/Math.max(1.0,maxAbsG);
 		final SFun g = new SFun(f,lastEval.x,lastEval.gx,boxBound,lastEval);
 		final LinMax lmax = new LinMax();
-		lmax.maximize(g, lastEval.fx, unitScale, goal,20);
+		lmax.maximize(g, lastEval.fx, unitScale,20);
 		if(g.max==null) {
 			return StepStatus.linMinFailure;
 		}
