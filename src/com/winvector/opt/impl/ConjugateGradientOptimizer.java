@@ -13,7 +13,6 @@ import com.winvector.opt.def.VectorOptimizer;
 public final class ConjugateGradientOptimizer implements VectorOptimizer {
 	private int debug = 2;
 	private final Log log = LogFactory.getLog(ConjugateGradientOptimizer.class);
-	private final int maxSteps = 1000;
 	private final double minGNormSq = 1.0e-20;
 	private final double minMotionSq = 1.0e-14;
 	private final double minHNormSq = 1.0e-12;
@@ -129,7 +128,7 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 		// build initial direction and history
 		double[] gPrev = null;
 		double[] hPrev = null;
-		for (int outerStep = 0; outerStep < maxSteps; ++outerStep) {
+		for (int outerStep = 0; outerStep < maxRounds; ++outerStep) {
 			// get gradient on current eval if we need it
 			if (cur.gx == null) {
 				cur = f.eval(cur.x,true,false);
