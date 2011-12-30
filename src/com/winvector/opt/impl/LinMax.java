@@ -24,7 +24,7 @@ public final class LinMax {
 			final double step = midX-aX;
 			midX = aX;
 			fmid = fA;
-			aX -= step;
+			aX -= 2*step;
 			fA = f.eval(aX);
 			if((++stepNum)>maxSteps) {
 				return midX;
@@ -34,7 +34,7 @@ public final class LinMax {
 			final double step = bX - midX;
 			midX = bX;
 			fmid = fB;
-			bX += step;
+			bX += 2*step;
 			fB = f.eval(bX);
 			if((++stepNum)>maxSteps) {
 				return midX;

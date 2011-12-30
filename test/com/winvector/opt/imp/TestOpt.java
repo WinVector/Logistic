@@ -80,9 +80,9 @@ public class TestOpt extends TestCase {
 		final VectorOptimizer[] opts = { new Newton(), new ConjugateGradientOptimizer(), new GradientDescent() };
 		for(final VectorOptimizer opt: opts) {
 			final VEval r = opt.maximize(f, new double[f.x0.length], 10);
-			//System.out.println(r);
+			System.out.println(r);
 			for(int i=0;i<f.x0.length;++i) {
-				assertTrue(Math.abs(r.x[i]-f.x0[i])<1.0e-2);
+				assertTrue(Math.abs(r.x[i]-f.x0[i])<0.1);
 			}
 		}
 	}
