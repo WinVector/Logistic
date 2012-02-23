@@ -10,6 +10,8 @@ import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
 
 
+
+
 /**
  * Newton step optimizer (set up to maximize)
  * @author johnmount
@@ -17,8 +19,7 @@ import com.winvector.opt.def.VectorOptimizer;
  */
 public final class Newton implements VectorOptimizer {
 	private final Log log = LogFactory.getLog(Newton.class);
-	//private final LinearSolver lSolver = new ConjugateGradient();
-	private final LinearSolver lSolver = new DirectSolver();
+	private final LinearSolver lSolver = new ConjugateGradientSolver();
 	private final double ridgeTerm = 1.0e-8;
 	private final double minGNormSQ = 1.0e-12;
 	private final double boxBound = 10.0; // TODO: set this
