@@ -75,6 +75,17 @@ public final class DBUtil {
 				readOnly) ;
 	}
 	
+	/**
+	example:
+	<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+	<properties>
+	 <comment>testdb</comment>
+	 <entry key="user">miner_demo</entry>
+	 <entry key="url">jdbc:postgresql://localhost:5432/miner_demo</entry>
+	 <entry key="password">miner_demo</entry>
+	 <entry key="driver">org.postgresql.Driver</entry>
+	</properties>
+	**/
 	public static DBHandle buildConnection(final URI propsURI, final boolean readOnly) throws IOException {
 		try {
 			final InputStream is = propsURI.toURL().openStream();

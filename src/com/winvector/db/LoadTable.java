@@ -6,10 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -154,21 +156,39 @@ public class LoadTable {
 	public static void loadTable(final Iterable<BurstMap> source, final RowCritique gateKeeper,
 			final String tableName, final DBHandle handle) throws SQLException {
 		final Log log = LogFactory.getLog(LoadTable.class);
-		// scan once to get field names and sizes
+		// scan once to get field names and sizes and types
+		final Pattern doubleRegexp = Pattern.compile("[-+]?[0-9]*\\.?[0-9]*([eE][-+]?[0-9]+)?"); // TODO: add missig values and Nan
+		final Pattern intRegexp = Pattern.compile("[-+]?[0-9]+");
 		final ArrayList<String> keys = new ArrayList<String>();
+		boolean[] isInt = null;
+		boolean[] isNumeric = null;
 		int[] sizes = null;
 		for(final BurstMap row: source) {
 			if((gateKeeper==null)||(gateKeeper.accept(row))) {
 				if(keys.isEmpty()) {
 					keys.addAll(row.keySet());
 					sizes = new int[keys.size()];
-					for(int i=0;i<sizes.length;++i) {
-						sizes[i] = 1;
-					}
+					isInt = new boolean[keys.size()];
+					isNumeric = new boolean[keys.size()];
+					Arrays.fill(sizes,1);
+					Arrays.fill(isInt,true);
+					Arrays.fill(isNumeric,true);
 				}
 				int i = 0;
 				for(final String k: keys) {
-					sizes[i] = Math.max(sizes[i],row.getAsString(k).length()+1);
+					final String v = row.getAsString(k);
+					final int vlength = v.length();
+					sizes[i] = Math.max(sizes[i],vlength+1);
+					if(isNumeric[i]) {
+						if((vlength<=0)||(!doubleRegexp.matcher(v).matches())) {
+							isNumeric[i] = false;
+						}
+					}
+					if(isInt[i]) {
+						if((vlength<=0)||(!intRegexp.matcher(v).matches())) {
+							isInt[i] = false;
+						}
+					}
 					++i;
 				}
 			}
@@ -190,7 +210,13 @@ public class LoadTable {
 						insertBuilder.append(",");
 					}
 					final String colName = plumpColumnName(k,seenColNames);
-					createBuilder.append(" " + colName + " VARCHAR(" + sizes[i] + ")");
+					if(isInt[i]) {
+						createBuilder.append(" " + colName + " INTEGER");
+					} else if(isNumeric[i]) {
+						createBuilder.append(" " + colName + " DOUBLE PRECISION");
+					} else {
+						createBuilder.append(" " + colName + " VARCHAR(" + sizes[i] + ")");
+					}
 					insertBuilder.append(" " + colName);
 					++i;
 				}
@@ -227,7 +253,13 @@ public class LoadTable {
 				if((gateKeeper==null)||(gateKeeper.accept(row))) {
 					int i = 0;
 					for(final String k: keys) {
-						stmtA.setString(i+1,row.getAsString(k));
+						if(isInt[i]) {
+							stmtA.setInt(i+1,(int)Math.round(row.getAsNumber(k)));
+						} else if(isNumeric[i]) {	
+							stmtA.setDouble(i+1,row.getAsNumber(k));
+						} else {
+							stmtA.setString(i+1,row.getAsString(k));
+						}
 						++i;
 					}
 					stmtA.executeUpdate();
