@@ -1,6 +1,5 @@
 
-Database to/from flatfile load/store utilities 
- see: http://www.win-vector.com/blog/2011/01/sql-screwdriver/
+
 
 Also large scale (though not large number of categorical levels) regularized logistic regression code (including Hadoop implementation):
   see: http://www.win-vector.com/blog/2010/12/large-data-logistic-regression-with-example-hadoop-code/
@@ -9,7 +8,8 @@ Also large scale (though not large number of categorical levels) regularized log
 
 All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http://www.gnu.org/copyleft/gpl.html )
 
-Requires:
+Requires/Depends:
+  https://github.com/WinVector/SQLScrewdriver/blob/master/SQLScrewdriver.jar SQLScrewdriver.jar https://github.com/WinVector/SQLScrewdriver
   http://www.junit.org/ JUnit 4.4 or newer
   http://www.h2database.com/html/main.html h2 database 1.2.147
   http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
