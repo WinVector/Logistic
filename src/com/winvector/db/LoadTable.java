@@ -3,6 +3,8 @@ package com.winvector.db;
 import java.io.File;
 import java.net.URI;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -177,16 +179,20 @@ public class LoadTable {
 				int i = 0;
 				for(final String k: keys) {
 					final String v = row.getAsString(k);
-					final int vlength = v.length();
-					sizes[i] = Math.max(sizes[i],vlength+1);
-					if(isNumeric[i]) {
-						if((vlength<=0)||(!doubleRegexp.matcher(v).matches())) {
-							isNumeric[i] = false;
-						}
-					}
-					if(isInt[i]) {
-						if((vlength<=0)||(!intRegexp.matcher(v).matches())) {
-							isInt[i] = false;
+					if(v!=null) {
+						final int vlength = v.length();
+						if(vlength>0) {
+							sizes[i] = Math.max(sizes[i],vlength+1);
+							if(isNumeric[i]) {
+								if((vlength>38)||(!doubleRegexp.matcher(v).matches())) {
+									isNumeric[i] = false;
+								}
+							}
+							if(isInt[i]) {
+								if((vlength>40)||(!intRegexp.matcher(v).matches())) {
+									isInt[i] = false;
+								}
+							}
 						}
 					}
 					++i;
@@ -196,33 +202,39 @@ public class LoadTable {
 		// build SQL
 		final String createStatement;
 		final String insertStatement;
+		final String selectStatement;
 		{ 
 			final Set<String> seenColNames = new HashSet<String>();
 			final StringBuilder createBuilder = new StringBuilder();
 			createBuilder.append("CREATE TABLE " + tableName + " (");
 			final StringBuilder insertBuilder = new StringBuilder();
 			insertBuilder.append("INSERT INTO " + tableName + " (");
+			final StringBuilder selectBuilder = new StringBuilder();
+			selectBuilder.append("SELECT ");
 			{
 				int i = 0;
 				for(final String k: keys) {
 					if(i>0) {
 						createBuilder.append(",");
 						insertBuilder.append(",");
+						selectBuilder.append(",");
 					}
 					final String colName = plumpColumnName(k,seenColNames);
 					if(isInt[i]) {
-						createBuilder.append(" " + colName + " INTEGER");
+						createBuilder.append(" " + colName + " BIGINT");
 					} else if(isNumeric[i]) {
 						createBuilder.append(" " + colName + " DOUBLE PRECISION");
 					} else {
 						createBuilder.append(" " + colName + " VARCHAR(" + sizes[i] + ")");
 					}
 					insertBuilder.append(" " + colName);
+					selectBuilder.append(" " + colName);
 					++i;
 				}
 			}
 			createBuilder.append(" )");
 			insertBuilder.append(" ) VALUES (");
+			selectBuilder.append(" FROM " + tableName);
 			for(int i=0;i<sizes.length;++i) {
 				if(i>0) {
 					insertBuilder.append(",");
@@ -232,8 +244,11 @@ public class LoadTable {
 			insertBuilder.append(" )");			
 			createStatement = createBuilder.toString();
 			insertStatement = insertBuilder.toString();
+			selectStatement = selectBuilder.toString();
 		}
 		// set up table
+		final int[] columnTypeCode;
+		final String[] columnTypeName;
 		{
 			final Statement stmt = handle.conn.createStatement();
 			try {
@@ -242,6 +257,16 @@ public class LoadTable {
 			}
 			log.info("\texecuting: " + createStatement);
 			stmt.executeUpdate(createStatement);
+			// get type codes back
+			final ResultSet rs = stmt.executeQuery(selectStatement);
+			final ResultSetMetaData rsm = rs.getMetaData();
+			columnTypeCode = new int[sizes.length];
+			columnTypeName = new String[sizes.length];
+			for(int i=0;i<sizes.length;++i) {
+				columnTypeCode[i] = rsm.getColumnType(i+1);
+				columnTypeName[i] = rsm.getColumnTypeName(i+1);
+			}
+			rs.close();
 			stmt.close();			
 		}
 		{ // scan again and populate
@@ -254,11 +279,26 @@ public class LoadTable {
 					int i = 0;
 					for(final String k: keys) {
 						if(isInt[i]) {
-							stmtA.setInt(i+1,(int)Math.round(row.getAsNumber(k)));
+							final Double asNumber = row.getAsNumber(k);
+							if(asNumber==null) {
+								stmtA.setNull(i+1,columnTypeCode[i]);
+							} else {
+								stmtA.setInt(i+1,(int)Math.round(asNumber));
+							}
 						} else if(isNumeric[i]) {	
-							stmtA.setDouble(i+1,row.getAsNumber(k));
+							final Double asNumber = row.getAsNumber(k);
+							if(asNumber==null) {
+								stmtA.setNull(i+1,columnTypeCode[i]);
+							} else {
+								stmtA.setDouble(i+1,asNumber);
+							}
 						} else {
-							stmtA.setString(i+1,row.getAsString(k));
+							final String asString = row.getAsString(k);
+							if(asString==null) {
+								stmtA.setNull(i+1,columnTypeCode[i]);
+							} else {
+								stmtA.setString(i+1,asString);
+							}
 						}
 						++i;
 					}
