@@ -1,7 +1,6 @@
 
 
-
-Also large scale (though not large number of categorical levels) regularized logistic regression code (including Hadoop implementation):
+Large scale (though not large number of categorical levels) regularized logistic regression code (including Hadoop implementation):
   see: http://www.win-vector.com/blog/2010/12/large-data-logistic-regression-with-example-hadoop-code/
        http://www.win-vector.com/blog/2011/09/the-simpler-derivation-of-logistic-regression/
        http://www.win-vector.com/blog/2010/11/learn-a-powerful-machine-learning-tool-logistic-regression-and-beyond/
@@ -14,4 +13,6 @@ Requires/Depends:
   http://www.h2database.com/html/main.html h2 database 1.2.147
   http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
   http://commons.apache.org/cli/ Apache commons CLI 1.2 or newer (command line interface)
+
+SQL stuff moved to https://github.com/WinVector/SQLScrewdriver
 
