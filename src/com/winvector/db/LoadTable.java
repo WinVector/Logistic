@@ -134,7 +134,12 @@ public class LoadTable {
 	}
 	
 	public static String plumpColumnName(final String kin, final Set<String> seen) {
-		String k = stompMarks(kin).replaceAll("\\W+"," ").trim().replaceAll("\\s+","_");
+		String k = kin;
+		final int colonIndex = k.indexOf(':');
+		if(colonIndex>0) { 		// get rid of any trailing : type info
+			k = k.substring(0,colonIndex);
+		}		
+		k = stompMarks(k).replaceAll("\\W+"," ").trim().replaceAll("\\s+","_");
 		if((k.length()<=0)||invalidColumnNames.contains(k.toLowerCase())||(!Character.isLetter(k.charAt(0)))) {
 			k = columnPrefix + k;
 		}
@@ -248,7 +253,7 @@ public class LoadTable {
 		}
 		// set up table
 		final int[] columnTypeCode;
-		final String[] columnTypeName;
+		final String[] columnClassName;
 		{
 			final Statement stmt = handle.conn.createStatement();
 			try {
@@ -261,10 +266,10 @@ public class LoadTable {
 			final ResultSet rs = stmt.executeQuery(selectStatement);
 			final ResultSetMetaData rsm = rs.getMetaData();
 			columnTypeCode = new int[sizes.length];
-			columnTypeName = new String[sizes.length];
+			columnClassName = new String[sizes.length];
 			for(int i=0;i<sizes.length;++i) {
 				columnTypeCode[i] = rsm.getColumnType(i+1);
-				columnTypeName[i] = rsm.getColumnTypeName(i+1);
+				columnClassName[i] = rsm.getColumnClassName(i+1);
 			}
 			rs.close();
 			stmt.close();			
@@ -279,18 +284,18 @@ public class LoadTable {
 					int i = 0;
 					for(final String k: keys) {
 						if(isInt[i]) {
-							final Double asNumber = row.getAsNumber(k);
-							if(asNumber==null) {
+							final Long asLong = row.getAsLong(k);
+							if(asLong==null) {
 								stmtA.setNull(i+1,columnTypeCode[i]);
 							} else {
-								stmtA.setInt(i+1,(int)Math.round(asNumber));
+								stmtA.setLong(i+1,asLong);
 							}
 						} else if(isNumeric[i]) {	
-							final Double asNumber = row.getAsNumber(k);
-							if(asNumber==null) {
+							final Double asDouble = row.getAsDouble(k);
+							if(asDouble==null) {
 								stmtA.setNull(i+1,columnTypeCode[i]);
 							} else {
-								stmtA.setDouble(i+1,asNumber);
+								stmtA.setDouble(i+1,asDouble);
 							}
 						} else {
 							final String asString = row.getAsString(k);

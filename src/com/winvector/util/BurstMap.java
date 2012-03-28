@@ -31,7 +31,7 @@ public final class BurstMap {
 		return v.toString();
 	}
 	
-	public Double getAsNumber(final String key) {
+	public Double getAsDouble(final String key) {
 		final Object v = burst.get(key);
 		if(v==null) {
 			return null;
@@ -41,6 +41,21 @@ public final class BurstMap {
 		}
 		try {
 			return Double.parseDouble(v.toString());
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+	
+	public Long getAsLong(final String key) {
+		final Object v = burst.get(key);
+		if(v==null) {
+			return null;
+		}
+		if(v instanceof Number) {
+			return ((Number)v).longValue();
+		}
+		try {
+			return Long.parseLong(v.toString());
 		} catch (Exception ex) {
 			return null;
 		}

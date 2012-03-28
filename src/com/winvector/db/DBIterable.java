@@ -5,6 +5,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -36,21 +37,27 @@ public final class DBIterable implements Iterable<BurstMap> {
 		private ResultSet rs;
 		private final String[] colNames;
 		private final int[] colTypes;
+		private final Map<String,String> colNameToJavaClassName = new HashMap<String,String>();
 		
 		public RSIterator(final ResultSet rs) throws SQLException {
 			this.rs = rs;
 			if(rs.next()) {
-				ResultSetMetaData meta = rs.getMetaData();
+				final ResultSetMetaData meta = rs.getMetaData();
 				final int n = meta.getColumnCount();
 				final String[] origColNames = new String[n];
 				colTypes = new int[n];
+				final String[] javaClassNames = new String[n];
 				for(int i=0;i<n;++i) {
 					// could also prepend (when appropriate) meta.getTableName(i+1);
 					//origColNames[i] = meta.getColumnName(i+1);
 					origColNames[i] = meta.getColumnLabel(i+1);
 					colTypes[i] = meta.getColumnType(i+1);
+					javaClassNames[i] = meta.getColumnClassName(i+1);
 				}
 				colNames = HBurster.buildHeaderFlds(origColNames);
+				for(int i=0;i<n;++i) {
+					colNameToJavaClassName.put(colNames[i],javaClassNames[i]);
+				}
 			} else {
 				rs.close();
 				this.rs = null;
@@ -60,6 +67,10 @@ public final class DBIterable implements Iterable<BurstMap> {
 			advance();
 		}
 
+		public String getJavaClassName(final String colName) {
+			return colNameToJavaClassName.get(colName);
+		}
+		
 		private void advance() {
 			next = null;
 			if(rs!=null) {
@@ -68,8 +79,11 @@ public final class DBIterable implements Iterable<BurstMap> {
 					final Map<String,Object> mp = new TreeMap<String,Object>(ignoreCase);
 					for(int i=0;i<n;++i) {
 						switch(colTypes[i]) {
+						case java.sql.Types.DATE:
+							mp.put(colNames[i],rs.getDate(i+1));
+							break;
 						case java.sql.Types.BIGINT:
-							mp.put(colNames[i],rs.getBigDecimal(i+1));
+							mp.put(colNames[i],rs.getLong(i+1));
 							break;
 						case java.sql.Types.DOUBLE:
 							mp.put(colNames[i],rs.getDouble(i+1));

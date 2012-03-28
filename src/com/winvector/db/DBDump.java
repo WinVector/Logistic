@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.net.URI;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 
+import com.winvector.db.DBIterable.RSIterator;
 import com.winvector.db.DBUtil.DBHandle;
 import com.winvector.util.BurstMap;
 import com.winvector.util.TrivialReader;
@@ -17,11 +19,13 @@ public class DBDump {
 	
 	public static long runQuery(final String query, final PrintStream p, final DBHandle handle) throws SQLException {
 		final Statement stmt = handle.createReadStatement();
-		final Iterable<BurstMap> source = new DBIterable(stmt,query);
+		final ResultSet rs = stmt.executeQuery(query);
+		final RSIterator source = new RSIterator(rs);
 		boolean first = true;
 		final String sep = "\t";
 		long rowNum = 0;
-		for(final BurstMap row: source) {
+		while(source.hasNext()) {
+			final BurstMap row = source.next();
 			if(first) {
 				boolean firstCol = true;
 				for(final String ki: row.keySet()) {
@@ -30,7 +34,7 @@ public class DBDump {
 					} else {
 						p.print(sep);
 					}
-					p.print(TrivialReader.safeStr(ki));
+					p.print(TrivialReader.safeStr(ki) + ":" + source.getJavaClassName(ki));
 				}
 				p.println();
 				first = false;

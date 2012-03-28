@@ -34,7 +34,7 @@ public final class NumericVariable implements VariableMapping {
 	
 	@Override
 	public void process(final BurstMap row, final Map<Integer, Double> vec) {
-		final Double v = row.getAsNumber(origColumn);
+		final Double v = row.getAsDouble(origColumn);
 		if(v!=null) {
 			if(v!=0.0) {
 				vec.put(index,v);
