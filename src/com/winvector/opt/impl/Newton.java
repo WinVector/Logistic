@@ -63,8 +63,7 @@ public final class Newton implements VectorOptimizer {
 		}
 	}
 	
-	private NewtonReturn newtonStep(final VectorFn f, final VEval lastEval) {
-		final int dim = f.dim();
+	private NewtonReturn newtonStep(final int dim, final VEval lastEval) {
 		final double normsq = LinUtil.dot(lastEval.gx,lastEval.gx);
 		if(normsq<=minGNormSQ) {
 			return new NewtonReturn(StepStatus.smallGNorm,null);
@@ -89,41 +88,59 @@ public final class Newton implements VectorOptimizer {
 			return new NewtonReturn(StepStatus.linFailure,null);
 		}
 	}
-	
+
 
 	
+	public VEval maximizeStep(final VectorFn f, final double[] x0,
+			final VEval cachedEval,
+			final boolean wantGrad, final boolean wantHessian) {
+		final VEval[] bestEval = new VEval[1];  // vector so gradient polish can alter value
+		if(cachedEval!=null && cachedEval.gx!=null && cachedEval.hx!=null) {
+			bestEval[0] = cachedEval;
+		} else {
+			if(null==x0) {
+				bestEval[0] = f.eval(new double[f.dim()],true,true);
+			} else {
+				bestEval[0] = f.eval(x0,true,true);
+			}
+		}
+		final double lastRecord = bestEval[0].fx;
+		final NewtonReturn nr = newtonStep(f.dim(),bestEval[0]);
+		boolean goodStep = false;
+		if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
+			final VEval newEval = f.eval(nr.newX,wantGrad,wantHessian);
+			if(newEval.fx>lastRecord) {
+				if(newEval.fx>lastRecord+1.0e-3) {
+					goodStep = true;
+				}
+				bestEval[0] = newEval;
+			}
+		}
+		if(!goodStep) {
+			// try a gradient step on last best
+			final GradientDescent gd = new GradientDescent();
+			@SuppressWarnings("unused")
+			final com.winvector.opt.impl.GradientDescent.StepStatus status = gd.gradientPolish(f, bestEval[0], bestEval);
+		}
+		return bestEval[0];
+	}
+
+	@Override
 	public VEval maximize(final VectorFn f, double[] x0, final int maxRounds) {
 		if(null==x0) {
 			x0 = new double[f.dim()];
 		}
 		final VEval[] bestEval = new VEval[1];  // vector so gradient polish can alter value
-		bestEval[0] = f.eval(x0,true,true);
-		for(int stepNum=0;stepNum<maxRounds;++stepNum) {
-			if((null==bestEval[0].gx)||(null==bestEval[0].hx)) {
-				bestEval[0] = f.eval(bestEval[0].x,true,true);
-			}
+		bestEval[0] = maximizeStep(f,x0,null,true,true);
+		for(int stepNum=1;stepNum<maxRounds;++stepNum) {
 			final double lastRecord = bestEval[0].fx;
-			final NewtonReturn nr = newtonStep(f,bestEval[0]);
+			final VEval newEval = maximizeStep(f,bestEval[0].x,bestEval[0],true,true);
 			boolean goodStep = false;
-			if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
-				final VEval newEval = f.eval(nr.newX,true,true);
-				if(newEval.fx>lastRecord) {
-					if(newEval.fx>lastRecord+1.0e-3) {
-						goodStep = true;
-					}
-					bestEval[0] = newEval;
-				}
-			}
-			if(!goodStep) {
-				// try a gradient step on last best
-				final GradientDescent gd = new GradientDescent();
-				final com.winvector.opt.impl.GradientDescent.StepStatus status = gd.gradientPolish(f, bestEval[0], bestEval);
-				if(status!=com.winvector.opt.impl.GradientDescent.StepStatus.goodGradientDescentStep) {
-					break;
-				}
-				if(bestEval[0].fx>lastRecord+1.0e-3) {
+			if(newEval.fx>lastRecord) {
+				if(newEval.fx>lastRecord+1.0e-3) {
 					goodStep = true;
 				}
+				bestEval[0] = newEval;
 			}
 			if(!goodStep) {
 				break;
