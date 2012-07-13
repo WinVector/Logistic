@@ -62,7 +62,7 @@ public class TestLRPath {
 	public static ArrayList<BurstMap> readBurstFromResource(final String resourceName) throws IOException {
 		final ArrayList<BurstMap> r = new ArrayList<BurstMap>();
 		final InputStream is = TestRoundTrip.class.getClassLoader().getResourceAsStream(resourceName);
-		final Iterator<BurstMap> it = new TrivialIterator(new LineNumberReader(new InputStreamReader(is)),"\t",true,"res:"+resourceName);
+		final Iterator<BurstMap> it = new TrivialIterator(new LineNumberReader(new InputStreamReader(is)),"\t",false,true,"res:"+resourceName);
 		while(it.hasNext()) {
 			final BurstMap row = it.next();
 			r.add(row);
@@ -157,7 +157,7 @@ public class TestLRPath {
 		final File modelFile = new File(tmpDir,"model.ser");
 		final File resultFile = new File(tmpDir,"scored.tsv");
 		TestLRPath.copyResourceToFile("com/winvector/logistic/uciCarTrain.tsv",trainFile);
-		final TrivialReader trainSource = new TrivialReader(trainFile.toURI(),'\t',null,null, false);
+		final TrivialReader trainSource = new TrivialReader(trainFile.toURI(),'\t',null,false,null, false);
 		(new LogisticTrain()).run(trainSource,new Formula("rating ~ buying + maintenance + doors + persons + lug_boot + safety"),modelFile,null);
 		final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile));
 		final Model model = (Model)ois.readObject();		

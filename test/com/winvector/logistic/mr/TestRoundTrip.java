@@ -31,7 +31,7 @@ public class TestRoundTrip {
 		final File modelFile = new File(tmpDir,"model.ser");
 		final File resDir = new File(tmpDir,"mrRes");
 		TestLRPath.copyResourceToFile("com/winvector/logistic/uciCarTrain.tsv",trainFile);
-		(new LogisticTrain()).run(new TrivialReader(trainFile.toURI(),'\t',null,null, false),new Formula("rating ~ buying + maintenance + doors + persons + lug_boot + safety"),modelFile,null);
+		(new LogisticTrain()).run(new TrivialReader(trainFile.toURI(),'\t',null,false,null, false),new Formula("rating ~ buying + maintenance + doors + persons + lug_boot + safety"),modelFile,null);
 		final MapReduceScore mrs = new MapReduceScore();
 		mrs.setConf(new Configuration());
 		final double accuracy = mrs.run(modelFile,trainFile.getAbsolutePath(),resDir.getAbsolutePath());
@@ -62,7 +62,7 @@ public class TestRoundTrip {
 		final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile));
 		final Model model = (Model)ois.readObject();		
 		ois.close();
-		final double accuracy2 = LogisticScore.score(model,new TrivialReader(trainFile.toURI(),'\t',null,null, false),resultFile);
+		final double accuracy2 = LogisticScore.score(model,new TrivialReader(trainFile.toURI(),'\t',null,false,null, false),resultFile);
 		// clean up
 		modelFile.delete();
 		trainFile.delete();

@@ -91,7 +91,7 @@ public class LogisticScore {
 		if(cl.getOptionValue(DATAURIKEY)!=null) {
 			final URI trainURI = new URI(cl.getOptionValue(DATAURIKEY));
 			log.info(" source URI: " + trainURI.toString());
-			testSource = new TrivialReader(trainURI,'\t',null,null, false);
+			testSource = new TrivialReader(trainURI,'\t',null,false,null, false);
 		} else {
 			final URI dbProps = new URI(cl.getOptionValue(DATAHDLKEY));
 			final String dbTable = cl.getOptionValue(DATATBLKEY);

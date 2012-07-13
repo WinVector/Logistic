@@ -226,7 +226,7 @@ public class LogisticTrain {
 		if(cl.getOptionValue(TRAINURIKEY)!=null) {
 			final URI trainURI = new URI(cl.getOptionValue(TRAINURIKEY));
 			log.info(" source URI: " + trainURI.toString());
-			origSource = new TrivialReader(trainURI,'\t',null,null, false);
+			origSource = new TrivialReader(trainURI,'\t',null,false,null, false);
 		} else {
 			final URI dbProps = new URI(cl.getOptionValue(TRAINHDLKEY));
 			final String dbTable = cl.getOptionValue(TRAINTBLKEY);
