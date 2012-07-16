@@ -27,6 +27,7 @@ public final class BTable {
 
 	private static final class BRes {
 		public final Map<String,double[]> codesByLevel = new HashMap<String,double[]>();
+		public final Map<String,String[]> codesNamesByLevel = new HashMap<String,String[]>();
 		public final Map<String,double[]> warmStartByOutcome = new HashMap<String,double[]>();
 	}
 
@@ -79,7 +80,8 @@ public final class BTable {
 			final BRes res = new BRes();
 			final double sumAll = sumTotal + smooth; 
 			for(final String level: oldAdapter.def().catLevels.get(variable).keySet()) {
-				final ArrayList<Double> codev = new ArrayList<Double>();
+				final ArrayList<Double> codev = new ArrayList<Double>(); 
+				final ArrayList<String> coname = new ArrayList<String>(); 
 				final Map<String,Integer> effectPositions = new TreeMap<String,Integer>();
 				final double sumLevel = totalByLevel.get(level) + smooth;
 				for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
@@ -89,20 +91,27 @@ public final class BTable {
 					final double sumLevelOutcome = totalByLevelByCategory.get(level,category) + smooth;
 					final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
 					codev.add(bayesTerm);
+					coname.add("bayes_" + outcome);
 					codev.add(Math.log(bayesTerm));
+					coname.add("logbayes_" + outcome);
 					final double sumRun = sumRunByLevelCategory.get(level,category) + smooth;
 					final double runTerm = sumRun/sumLevel;
 					codev.add(runTerm);
+					coname.add("runTerm_" + outcome);
 					codev.add(Math.log(runTerm));
+					coname.add("logRunTerm_" + outcome);
 					final double superBalanceTerm = (totalByLevelByCategory.get(level,category) - sumPByLevelCorrectCategory.get(level,category))/sumLevel;
 					codev.add(superBalanceTerm);
+					coname.add("superBalance_" + outcome);
 					final double balanceTerm = (totalByLevelByCategory.get(level,category) - sumPByLevelCategory.get(level,category))/sumLevel;
 					codev.add(balanceTerm);
+					coname.add("balance_" + outcome);
 					if(oldX!=null) {
 						final int base = category*oldAdapter.vdim;
 						final double cumulativeEffect = oldAdaption.effect(base,oldX,level); // cumulative wisdom to date
 						effectPositions.put(outcome,codev.size()); // mark where cumulative effect term went  
 						codev.add(cumulativeEffect); 
+						coname.add("effect_" + outcome);
 					}
 				}
 				// finish encode
@@ -111,6 +120,7 @@ public final class BTable {
 				for(int i=0;i<width;++i) {
 					code[i] = codev.get(i);
 				}
+				res.codesByLevel.put(level,code);
 				if(!effectPositions.isEmpty()) {
 					for(final String outcome: oldAdapter.outcomeCategories.keySet()) {
 						final double[] warmStart = new double[width];
@@ -118,13 +128,18 @@ public final class BTable {
 						res.warmStartByOutcome.put(outcome,warmStart);
 					}
 				}
-				res.codesByLevel.put(level,code);
+				final String[] names = new String[width];
+				for(int i=0;i<width;++i) {
+					names[i] = coname.get(i);
+				}
+				res.codesNamesByLevel.put(level,names);
 			}
 			return res;
 		}
 	}
 	
 	public final Map<String,Map<String,double[]>> levelEncodings = new TreeMap<String,Map<String,double[]>>();
+	public final Map<String,Map<String,String[]>> levelEncodingNames = new TreeMap<String,Map<String,String[]>>();
 	public VariableEncodings oldAdapter;
 	public VariableEncodings newAdapter;
 	public double[] warmStart = null;
@@ -182,10 +197,11 @@ public final class BTable {
 			final BStat si = me.getValue();
 			final BRes newCodes = si.encode(variable,oldAdapter,oldX);
 			res.levelEncodings.put(variable,newCodes.codesByLevel);
+			res.levelEncodingNames.put(variable,newCodes.codesNamesByLevel);
 			bData.put(variable,newCodes);
 		}
 		// build new adapter
-		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),res.levelEncodings);
+		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),res.levelEncodings,res.levelEncodingNames);
 		// build warmstart vector
 		if(oldX!=null) {
 			final Map<String,VariableMapping> newAdaptions = new HashMap<String,VariableMapping>();

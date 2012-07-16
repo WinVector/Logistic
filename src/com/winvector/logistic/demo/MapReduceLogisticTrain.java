@@ -68,7 +68,7 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 		final WritableVariableList lConfig = MapRedScan.initialScan(tmpPrefix,mrConfig,
 				trainFile,formulaStr);
 		log.info("formula:\t" + formulaStr + "\n" + lConfig.formatState());
-		final VariableEncodings defs = new VariableEncodings(lConfig,true,null);
+		final VariableEncodings defs = new VariableEncodings(lConfig,true);
 		//final WritableSigmoidLossBinomial underlying = new WritableSigmoidLossBinomial(defs.dim());
 		final SigmoidLossMultinomial underlying = new SigmoidLossMultinomial(defs.dim(),defs.noutcomes());
 		final MapRedFn f = new MapRedFn(underlying,lConfig,defs.useIntercept(),

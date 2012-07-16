@@ -77,7 +77,7 @@ public final class MapRedAccuracy {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept,null);
+			defs = new VariableEncodings(config.defs,config.useIntercept);
 			nGood = 0;
 			nSeen = 0;
 		}

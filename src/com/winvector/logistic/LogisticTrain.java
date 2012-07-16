@@ -58,7 +58,7 @@ public class LogisticTrain {
 	
 	public static VariableEncodings buildAdpater(final Formula f, final boolean useIntercept, final Iterable<BurstMap> source) {
 		final PrimaVariableInfo def = buildVariableDefs(f,source);
-		return new VariableEncodings(def,useIntercept,null);
+		return new VariableEncodings(def,useIntercept);
 	}
 
 	private static final String TRAINURIKEY = "trainURI";

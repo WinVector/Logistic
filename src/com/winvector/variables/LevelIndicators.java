@@ -81,6 +81,11 @@ public final class LevelIndicators implements VariableMapping {
 	}
 	
 	@Override
+	public SortedMap<String,Double> detailedEffects(final int base, final double[] x) {
+		return effects(base,x);
+	}
+	
+	@Override
 	public double effect(final int base, final double[] x, final String level) {
 		return x[base+index+levelCodes.get(level)];
 	}

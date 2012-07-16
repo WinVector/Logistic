@@ -72,7 +72,7 @@ public final class MapRedScore {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept,null);
+			defs = new VariableEncodings(config.defs,config.useIntercept);
 		}
 
 		@Override

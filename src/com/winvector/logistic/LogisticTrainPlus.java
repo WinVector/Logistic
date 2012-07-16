@@ -52,7 +52,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			}
 			log.info("re-encoding levels for " + varsToEncode.size() + " varaibles: " + encList);
 		}
-		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept,null);
+		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept);
 		final double[] newtonX;
 		{
 			double[] opt = null;

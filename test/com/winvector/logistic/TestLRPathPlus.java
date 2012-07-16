@@ -146,7 +146,7 @@ public class TestLRPathPlus {
 		final Formula f = new Formula(formulaStr);
 		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrainPlus.buildVariableDefs(f,trainSource);
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
+		final VariableEncodings adapter = new VariableEncodings(def,useIntercept);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
@@ -226,15 +226,25 @@ public class TestLRPathPlus {
 		final Random rand = new Random(23251);
 		final PrimaVariableInfo def = LogisticTrainPlus.buildVariableDefs(f,trainSource);
 		final Map<String,Map<String,double[]>> vectorEncodings = new TreeMap<String,Map<String,double[]>>();
+		final Map<String,Map<String,String[]>> vectorEncodingNames = new TreeMap<String,Map<String,String[]>>();
+		int rc = 0;
 		for(final Entry<String, CountMap<String>> me: def.catLevels.entrySet()) {
 			final String variable = me.getKey();
 			final Map<String, double[]> codes = new TreeMap<String,double[]>();
+			final Map<String, String[]> names = new TreeMap<String,String[]>();
 			for(final String level: me.getValue().keySet()) {
 				codes.put(level,randVec(targetDim,rand));
+				final String[] nameV = new String[targetDim];
+				for(int i=0;i<nameV.length;++i) {
+					nameV[i] = "rand_" + rc + "_" + i;
+				}
+				++rc;
+				names.put(level,nameV);
 			}
 			vectorEncodings.put(variable,codes);
+			vectorEncodingNames.put(variable,names);
 		}
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,vectorEncodings);
+		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,vectorEncodings,vectorEncodingNames);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1); 
@@ -263,7 +273,7 @@ public class TestLRPathPlus {
 			}
 		}
 		
-		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept,null);
+		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept);
 		final double[] newtonX;
 		final double newtonDataPortion;
 		{
@@ -276,8 +286,8 @@ public class TestLRPathPlus {
 					final Map<String[],Double> decodeOld = vectorEncodings.newAdapter.decodeSolution(opt,true);
 					final double preScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
 					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt);
-					//System.out.println("warmstart vector: " + LinUtil.toString(vectorEncodings.warmStart));
-					//System.out.println("warmstart details:\n" + vectorEncodings.newAdapter.formatSoln(vectorEncodings.warmStart));
+					System.out.println("warmstart vector: " + LinUtil.toString(vectorEncodings.warmStart));
+					System.out.println("warmstart details:\n" + vectorEncodings.newAdapter.formatSoln(vectorEncodings.warmStart));
 					final Map<String[],Double> decodeNew = vectorEncodings.newAdapter.decodeSolution(vectorEncodings.warmStart,true);
 					// confirm warmstart equivalent to old soln
 					assertEquals(decodeOld.size(),decodeNew.size());
@@ -293,10 +303,6 @@ public class TestLRPathPlus {
 					System.out.println("preScore:  " + preScore);
 					System.out.println("postScore: " + postScore);
 					assertTrue(relDiff(preScore,postScore)<1.0e-3);
-					// fuzz warmstart to get out of any ridges
-					//for(int i=0;i<vectorEncodings.warmStart.length;++i) {
-					//	vectorEncodings.warmStart[i] += 0.1*rand.nextGaussian();
-					//}
 					opt = vectorEncodings.warmStart;
 				}
 				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,trainSource);
@@ -310,8 +316,8 @@ public class TestLRPathPlus {
 				opt = newOpt.x;
 				optfx = newOpt.fx;
 				System.out.println("done Newton training\t" + new Date());
-				//System.out.println("soln vector: " + LinUtil.toString(opt.x));
-				//System.out.println("soln details:\n" + vectorEncodings.newAdapter.formatSoln(opt.x));
+				System.out.println("soln vector: " + LinUtil.toString(opt));
+				System.out.println("soln details:\n" + vectorEncodings.newAdapter.formatSoln(opt));
 				final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt);
 				System.out.println("train accuracy:" + trainAccuracy);
 			}

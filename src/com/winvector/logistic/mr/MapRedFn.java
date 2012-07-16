@@ -145,7 +145,7 @@ public final class MapRedFn implements VectorFn {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept,null);
+			defs = new VariableEncodings(config.defs,config.useIntercept);
 			accum = new VEval(config.x,config.wantGrad,config.wantHessian);
 			nProcessed = 0;
 		}

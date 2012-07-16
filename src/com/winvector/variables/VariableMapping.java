@@ -49,6 +49,14 @@ public interface VariableMapping extends Serializable {
 	SortedMap<String,Double> effects(int base, double[] x);
 	
 	/**
+	 * 
+	 * @param base how many indices to skip (use to get per-outcome data, so base will be a multiple of encoding dimension)
+	 * @param x vector soln
+	 * @return map similar to effects, possibly with additional entries for pseudo-levels (to carry more detail)
+	 */
+	SortedMap<String, Double> detailedEffects(int base, double[] x);
+	
+	/**
 	 * for test/debugging, allowed to be slow
 	 * 
 	 * @param base how many indices to skip (use to get per-outcome data, so base will be a multiple of encoding dimension)

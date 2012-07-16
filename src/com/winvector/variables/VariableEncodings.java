@@ -24,7 +24,7 @@ public final class VariableEncodings implements Serializable {
 	private final ArrayList<String> outcomeNames = new ArrayList<String>();
 	
 	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept,
-			final Map<String,Map<String,double[]>> vectorEncodings) {
+			final Map<String,Map<String,double[]>> vectorEncodings, final Map<String,Map<String,String[]>> vectorEncodingNames) {
 		this.def = def;
 		this.useIntercept = useIntercept;
 		// encode variables
@@ -43,7 +43,7 @@ public final class VariableEncodings implements Serializable {
 		for(final String ci: new TreeSet<String>(def.catLevels.keySet())) {
 			final VariableMapping adaption;
 			if((vectorEncodings!=null)&&(vectorEncodings.containsKey(ci))) {
-				adaption = new LevelVectors(ci,adapterDim,vectorEncodings.get(ci));
+				adaption = new LevelVectors(ci,adapterDim,vectorEncodings.get(ci),vectorEncodingNames.get(ci));
 			} else {
 				final CountMap<String> levels = def.catLevels.get(ci);
 				adaption = new LevelIndicators(ci,adapterDim,levels.keySet());
@@ -57,6 +57,10 @@ public final class VariableEncodings implements Serializable {
 			outcomeCategories.put(oci,outcomeCategories.size());
 			outcomeNames.add(oci);
 		}
+	}
+
+	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept) {
+		this(def,useIntercept,null,null);
 	}
 	
 	public PrimaVariableInfo def() {
@@ -107,7 +111,7 @@ public final class VariableEncodings implements Serializable {
 			final int cati = mc.getValue();
 			final int base = cati*vdim;
 			for(final VariableMapping adaption: adaptions) {
-				final SortedMap<String,Double> effects = adaption.effects(base,x);
+				final SortedMap<String,Double> effects = adaption.detailedEffects(base,x);
 				for(final Map.Entry<String,Double> ei: effects.entrySet()) {
 					final String level = ei.getKey();
 					final double effect = ei.getValue();

@@ -132,7 +132,7 @@ public class TestLRPath {
 		final Formula f = new Formula(formulaStr);
 		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrain.buildVariableDefs(f,trainSource);
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
+		final VariableEncodings adapter = new VariableEncodings(def,useIntercept);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);

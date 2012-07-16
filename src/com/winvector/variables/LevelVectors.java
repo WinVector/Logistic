@@ -17,14 +17,17 @@ public final class LevelVectors implements VariableMapping {
 	private final String origColumn;
 	private final int index;
 	private final Map<String,double[]> levelCodes;
+	private final Map<String,String[]> levelNames;
 	private final int targetDim;
 
 
 	
-	public LevelVectors(final String origColumn, final int index, final Map<String,double[]> levelCodes) { 
+	public LevelVectors(final String origColumn, final int index, 
+			final Map<String,double[]> levelCodes, final Map<String,String[]> levelNames) { 
 		this.origColumn = origColumn;
 		this.index = index;
 		this.levelCodes = levelCodes;
+		this.levelNames = levelNames;
 		if(!levelCodes.isEmpty()) {
 			targetDim = levelCodes.values().iterator().next().length;
 		} else {
@@ -66,6 +69,11 @@ public final class LevelVectors implements VariableMapping {
 		return "CategoricalVectorEnc";
 	}
 	
+	private double dot1coord(final int base, final double[] x, final double[] code, final int i) {
+		return x[base+index+i]*code[i];
+	}
+	
+	
 	private double dot(final int base, final double[] x, final double[] code) {
 		double v = 0.0;
 		for(int i=0;i<targetDim;++i) {
@@ -85,6 +93,23 @@ public final class LevelVectors implements VariableMapping {
 		}
 		return r;
 	}
+	
+	@Override
+	public SortedMap<String,Double> detailedEffects(final int base, final double[] x) {
+		final SortedMap<String,Double> r = new TreeMap<String,Double>();
+		for(final Entry<String, double[]> me: levelCodes.entrySet()) {
+			final String level = me.getKey();
+			final double[] code = me.getValue();
+			final String[] names = levelNames.get(level);
+			final double v = dot(base,x,code);
+			r.put(level,v);
+			for(int i=0;i<targetDim;++i) {
+				r.put(level + "_" + names[i],dot1coord(base,x,code,i));
+			}
+		}
+		return r;
+	}
+
 	
 	@Override
 	public double effect(final int base, final double[] x, final String level) {
