@@ -69,6 +69,7 @@ public final class MapRedFn implements VectorFn {
 		public LinearContribution<ExampleRow> underlying = null;
 		public WritableVariableList defs = null;
 		public boolean useIntercept = true;
+		public String weightKey = null;
 		public double[] x = null;
 		public boolean wantGrad = false;
 		public boolean wantHessian = false;
@@ -89,6 +90,12 @@ public final class MapRedFn implements VectorFn {
 			defs = new WritableVariableList();
 			defs.readFields(in);
 			useIntercept = in.readBoolean();
+			final boolean haveWeightKey = in.readBoolean();
+			if(haveWeightKey) {
+				weightKey = in.readUTF();
+			} else {
+				weightKey = null;
+			}
 			x = WritableUtils.readVec(in);
 			wantGrad = in.readBoolean();
 			wantHessian = in.readBoolean();
@@ -100,6 +107,10 @@ public final class MapRedFn implements VectorFn {
 			out.writeUTF(SerialUtils.serializableToString(underlying));
 			defs.write(out);
 			out.writeBoolean(useIntercept);
+			out.writeBoolean(null!=weightKey);
+			if(null!=weightKey) {
+				out.writeUTF(weightKey);
+			}
 			WritableUtils.writeVec(x,out);
 			out.writeBoolean(wantGrad);
 			out.writeBoolean(wantHessian);			
@@ -145,7 +156,7 @@ public final class MapRedFn implements VectorFn {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept);
+			defs = new VariableEncodings(config.defs,config.useIntercept,config.weightKey);
 			accum = new VEval(config.x,config.wantGrad,config.wantHessian);
 			nProcessed = 0;
 		}
@@ -160,8 +171,9 @@ public final class MapRedFn implements VectorFn {
 					final Integer category = defs.category(resStr.trim());
 					if((category!=null)&&(category>=0)) {
 						final SortedMap<Integer,Double> v = defs.vector(parsed);
-						if(v!=null) {
-							final ExampleRow r = new SparseExampleRow(v,category);
+						final double wt = defs.weight(parsed);
+						if((wt>0.0)&&(v!=null)) {
+							final ExampleRow r = new SparseExampleRow(v,wt,category);
 							config.underlying.addTerm(config.x, config.wantGrad, config.wantHessian, r, accum);
 							++nProcessed;
 						}

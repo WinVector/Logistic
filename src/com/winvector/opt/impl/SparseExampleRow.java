@@ -10,9 +10,9 @@ public final class SparseExampleRow implements ExampleRow {
 	private final int[] indices;
 	private final double[] values;
 
-	public SparseExampleRow(final Map<Integer,Double> x, final int category) {
+	public SparseExampleRow(final Map<Integer,Double> x, final double weight, final int category) {
 		this.category = category;
-		wt = 1.0;
+		wt = weight;
 		final int card = x.size();
 		indices = new int[card];
 		values = new double[card];

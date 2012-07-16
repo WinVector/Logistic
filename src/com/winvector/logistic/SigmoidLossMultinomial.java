@@ -44,48 +44,50 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 	
 	@Override
 	public void addTerm(final double[] x, final boolean wantGrad, final boolean wantHessian, final ExampleRow di, final VEval r) {
-		final double[] pred = predict(x,di);
 		final double wt = di.weight();
-		r.fx += wt*Math.log(pred[di.category()]);
-		final int nindices;
-		if(wantGrad||wantHessian) {
-			nindices = di.getNIndices();
-		} else {
-			nindices = 0;
-		}
-		if(wantGrad) {
-			final double[] grad = r.gx;
-			for(int cati=0;cati<noutcomes;++cati) {
-				final double pc = pred[cati];
-				final double t = (di.category()==cati?1.0:0.0) - pc;
-				for(int ii=0;ii<nindices;++ii) {
-					final int i = di.getKthIndex(ii) + cati*vdim;
-					final double vi = di.getKthValue(ii);
-					final double oij = grad[i];
-					final double nij = oij + wt*t*vi;
-					grad[i] = nij;
-				}
+		if(wt>0.0) {
+			final double[] pred = predict(x,di);
+			r.fx += wt*Math.log(pred[di.category()]);
+			final int nindices;
+			if(wantGrad||wantHessian) {
+				nindices = di.getNIndices();
+			} else {
+				nindices = 0;
 			}
-		}
-		if(wantHessian) {
-			final double[][] hess = r.hx;
-			for(int cati=0;cati<noutcomes;++cati) {
-				for(int catj=0;catj<noutcomes;++catj) {
-					final double t;
-					if(cati==catj) {
-						t = -pred[cati]*(1.0-pred[cati]);
-					} else {
-						t = pred[cati]*pred[catj];
-					}
+			if(wantGrad) {
+				final double[] grad = r.gx;
+				for(int cati=0;cati<noutcomes;++cati) {
+					final double pc = pred[cati];
+					final double t = (di.category()==cati?1.0:0.0) - pc;
 					for(int ii=0;ii<nindices;++ii) {
 						final int i = di.getKthIndex(ii) + cati*vdim;
 						final double vi = di.getKthValue(ii);
-						for(int jj=0;jj<nindices;++jj) {
-							final int j = di.getKthIndex(jj) + catj*vdim;
-							final double vj = di.getKthValue(jj);
-							final double oij = hess[i][j];
-							final double nij = oij + wt*t*vi*vj;
-							hess[i][j] = nij;
+						final double oij = grad[i];
+						final double nij = oij + wt*t*vi;
+						grad[i] = nij;
+					}
+				}
+			}
+			if(wantHessian) {
+				final double[][] hess = r.hx;
+				for(int cati=0;cati<noutcomes;++cati) {
+					for(int catj=0;catj<noutcomes;++catj) {
+						final double t;
+						if(cati==catj) {
+							t = -pred[cati]*(1.0-pred[cati]);
+						} else {
+							t = pred[cati]*pred[catj];
+						}
+						for(int ii=0;ii<nindices;++ii) {
+							final int i = di.getKthIndex(ii) + cati*vdim;
+							final double vi = di.getKthValue(ii);
+							for(int jj=0;jj<nindices;++jj) {
+								final int j = di.getKthIndex(jj) + catj*vdim;
+								final double vj = di.getKthValue(jj);
+								final double oij = hess[i][j];
+								final double nij = oij + wt*t*vi*vj;
+								hess[i][j] = nij;
+							}
 						}
 					}
 				}

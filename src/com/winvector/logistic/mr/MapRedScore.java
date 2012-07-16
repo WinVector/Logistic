@@ -72,7 +72,7 @@ public final class MapRedScore {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept);
+			defs = new VariableEncodings(config.defs,config.useIntercept,config.weightKey);
 		}
 
 		@Override
@@ -81,9 +81,10 @@ public final class MapRedScore {
 			final BurstMap parsed = burster.parse(origStr);
 			if(!parsed.isEmpty()) {
 				final Map<Integer,Double> v = defs.vector(parsed);
-				if(v!=null) {
+				final double wt = defs.weight(parsed);
+				if((wt>0.0)&&(v!=null)) {
 					final int catInt = -1;
-					final Datum r = new SparseExampleRow(v,catInt);
+					final Datum r = new SparseExampleRow(v,wt,catInt);
 					final double[] pred = config.underlying.predict(config.x,r);
 					final StringBuilder b = new StringBuilder();
 					for(final double pi: pred) {

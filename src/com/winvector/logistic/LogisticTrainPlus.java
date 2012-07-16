@@ -28,7 +28,7 @@ import com.winvector.variables.VariableEncodings;
 public final class LogisticTrainPlus extends LogisticTrain {
 
 	@Override
-	public Model train(final Iterable<BurstMap> trainSource, final Formula f) {
+	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
 		final Log log = LogFactory.getLog(this.getClass());
 		final int maxExplicitLevels = 100;
 		final double newtonRegularization = 1.0e-3;
@@ -52,7 +52,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			}
 			log.info("re-encoding levels for " + varsToEncode.size() + " varaibles: " + encList);
 		}
-		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept);
+		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept,weightKey);
 		final double[] newtonX;
 		{
 			double[] opt = null;

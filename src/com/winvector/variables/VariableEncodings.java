@@ -16,6 +16,8 @@ public final class VariableEncodings implements Serializable {
 	// definitional 
 	private final PrimaVariableInfo def;
 	private final boolean useIntercept;
+	// weight control
+	public final String weightKey;
 	// derived inputs
 	public final int vdim;
 	public final ArrayList<VariableMapping> adaptions = new ArrayList<VariableMapping>();
@@ -23,10 +25,11 @@ public final class VariableEncodings implements Serializable {
 	public final SortedMap<String,Integer> outcomeCategories = new TreeMap<String,Integer>();
 	private final ArrayList<String> outcomeNames = new ArrayList<String>();
 	
-	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept,
+	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey,
 			final Map<String,Map<String,double[]>> vectorEncodings, final Map<String,Map<String,String[]>> vectorEncodingNames) {
 		this.def = def;
 		this.useIntercept = useIntercept;
+		this.weightKey = weightKey;
 		// encode variables
 		int adapterDim = 0;
 		if(useIntercept) {
@@ -59,8 +62,8 @@ public final class VariableEncodings implements Serializable {
 		}
 	}
 
-	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept) {
-		this(def,useIntercept,null,null);
+	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey) {
+		this(def,useIntercept,weightKey,null,null);
 	}
 	
 	public PrimaVariableInfo def() {
@@ -73,6 +76,16 @@ public final class VariableEncodings implements Serializable {
 
 	public int dim() {
 		return vdim;
+	}
+	
+	public double weight(final BurstMap row) {
+		if(null!=weightKey) {
+			final Double v = row.getAsDouble(weightKey);
+			if(null!=v) {
+				return v;
+			}
+		}
+		return 1.0;
 	}
 	
 	public SortedMap<Integer,Double> vector(final BurstMap row) {

@@ -36,7 +36,7 @@ public class RExample implements Iterable<ExampleRow> {
 						vec.put(j+1,rawdat[i][j]);
 					}
 				}
-				next = new SparseExampleRow(vec,category);
+				next = new SparseExampleRow(vec,1.0,category);
 				++i;
 			}
 		}

@@ -77,7 +77,7 @@ public final class MapRedAccuracy {
 				throw new IOException(e.toString());
 			}
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
-			defs = new VariableEncodings(config.defs,config.useIntercept);
+			defs = new VariableEncodings(config.defs,config.useIntercept,config.weightKey);
 			nGood = 0;
 			nSeen = 0;
 		}
@@ -88,7 +88,8 @@ public final class MapRedAccuracy {
 			final BurstMap parsed = burster.parse(origStr);
 			if(!parsed.isEmpty()) {
 				final SortedMap<Integer, Double> v = defs.vector(parsed);
-				if(v!=null) {
+				final double wt = defs.weight(parsed);
+				if((wt>0.0)&&(v!=null)) {
 					int catInt = -1;
 					final String resStr = parsed.getAsString(config.defs.resultColumn);
 					if((resStr!=null)&&(resStr.length()>0)) {
@@ -97,7 +98,7 @@ public final class MapRedAccuracy {
 							catInt = category;
 						}
 					}
-					final ExampleRow r = new SparseExampleRow(v,catInt);
+					final ExampleRow r = new SparseExampleRow(v,wt,catInt);
 					final double[] pred = config.underlying.predict(config.x,r);
 					if(catInt>=0) {
 						final boolean good = (pred!=null)&&(pred.length==defs.noutcomes())&&HelperFns.isGoodPrediction(pred,r);

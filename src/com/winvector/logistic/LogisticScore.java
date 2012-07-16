@@ -147,7 +147,7 @@ public class LogisticScore {
 					catInt = category;
 				}
 			}
-			final ExampleRow ei = new SparseExampleRow(model.config.vector(row),catInt);
+			final ExampleRow ei = new SparseExampleRow(model.config.vector(row),model.config.weight(row),catInt);
 			final double[] pred = sigmoidLoss.predict(model.coefs,ei);
 			for(int i=0;i<model.config.noutcomes();++i) { // non-empty list
 				if(i!=0) {

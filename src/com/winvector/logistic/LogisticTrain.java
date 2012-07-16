@@ -56,9 +56,10 @@ public class LogisticTrain {
 		return def;
 	}
 	
-	public static VariableEncodings buildAdpater(final Formula f, final boolean useIntercept, final Iterable<BurstMap> source) {
+	public static VariableEncodings buildAdpater(final Formula f, final boolean useIntercept, final String weightKey,
+			final Iterable<BurstMap> source) {
 		final PrimaVariableInfo def = buildVariableDefs(f,source);
-		return new VariableEncodings(def,useIntercept);
+		return new VariableEncodings(def,useIntercept,weightKey);
 	}
 
 	private static final String TRAINURIKEY = "trainURI";
@@ -66,6 +67,7 @@ public class LogisticTrain {
 	private static final String TRAINTBLKEY = "trainTBL";
 	private static final String MEMKEY = "inmemory";
 	private static final String FORMULAKEY = "formula";
+	private static final String WEIGHTKEY = "weights";
 	private static final String RESULTSERKEY = "resultSer";
 	private static final String RESULTTSVKEY = "resultTSV";
 	private static final String TRAINCLASSKEY = "trainClass";
@@ -78,6 +80,7 @@ public class LogisticTrain {
 		cloptions.addOption(TRAINTBLKEY,true,"table to use from database for training data");
 		cloptions.addOption(MEMKEY, false, "if set data is held in memory during training");
 		cloptions.addOption(FORMULAKEY,true,"formula to fit");
+		cloptions.addOption(WEIGHTKEY,true,"(optional) symbol to user for weights");
 		cloptions.addOption(RESULTSERKEY,true,"(optional) file to write seriazlized results to");
 		cloptions.addOption(RESULTTSVKEY,true,"(optional) file to write TSV results to");
 		cloptions.addOption(TRAINCLASSKEY,true,"(optional) alternate class to use for training");
@@ -218,7 +221,8 @@ public class LogisticTrain {
 		final Log log = LogFactory.getLog(LogisticTrain.class);
 		log.info("start LogisticTrain\t" + new Date());
 		final CommandLine cl = parseCommandLine(args);
-		final String formulaStr = cl.getOptionValue(FORMULAKEY);       // example: rating ~ buying + maintinance + doors + persons + lug_boot + safety 
+		final String formulaStr = cl.getOptionValue(FORMULAKEY);       // example: rating ~ buying + maintinance + doors + persons + lug_boot + safety
+		final String weightKey = cl.getOptionValue(WEIGHTKEY);
 		final Formula f = new Formula(formulaStr);
 		final Iterable<BurstMap> origSource;
 		DBHandle handle = null;
@@ -255,7 +259,7 @@ public class LogisticTrain {
 			trainer = new LogisticTrain();
 		}
 		log.info("trainer: " + trainer.getClass());
-		trainer.run(trainSource,f,resultFileSer,resultFileTSV);
+		trainer.run(trainSource,f,weightKey,resultFileSer,resultFileTSV);
 		if(null!=stmt) {
 			stmt.close();
 			stmt = null;
@@ -267,9 +271,9 @@ public class LogisticTrain {
 		log.info("done LogisticTrain\t" + new Date());
 	}
 
-	public Model train(final Iterable<BurstMap> trainSource, final Formula f) {
+	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
 		final Log log = LogFactory.getLog(this.getClass());
-		final VariableEncodings adapter = buildAdpater(f,true,trainSource);
+		final VariableEncodings adapter = buildAdpater(f,true,weightKey,trainSource);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
@@ -286,9 +290,10 @@ public class LogisticTrain {
 	}
 	
 	
-	public final void run(final Iterable<BurstMap> trainSource, final Formula f, final File resultFileSer, final File resultFileTSV) throws IOException, ParseException {
+	public final void run(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey,
+			final File resultFileSer, final File resultFileTSV) throws IOException, ParseException {
 		final Log log = LogFactory.getLog(this.getClass());
-		final Model model = train(trainSource,f);
+		final Model model = train(trainSource,f,weightKey);
 		if(resultFileSer!=null) {
 			log.info("writing " + resultFileSer.getAbsolutePath());
 			final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(resultFileSer));

@@ -60,19 +60,20 @@ public final class BTable {
 		 * @param level level of variable
 		 * @param pred current model predictions
 		 * @param correct category
+		 * @paream weight>0.0
 		 */
-		public void observe(final String outcome, final String level, final double[] pred, final int category) {
-			sumTotal += 1.0;
-			totalByLevel.observe(level,1.0);
-			totalByOutcome.observe(outcome,1.0);
-			totalByLevelByCategory.observe(level,category,1.0);
+		public void observe(final String outcome, final String level, final double[] pred, final int category, final double weight) {
+			sumTotal += weight;
+			totalByLevel.observe(level,weight);
+			totalByOutcome.observe(outcome,weight);
+			totalByLevelByCategory.observe(level,category,weight);
 			final int nc = pred.length;
 			for(int i=0;i<nc;++i) {
-				sumPByLevelCategory.observe(level,category,pred[i]);
+				sumPByLevelCategory.observe(level,category,weight*pred[i]);
 			}
 			final double smallValue = 0.1/(double)nc;
-			sumRunByLevelCategory.observe(level,category,1.0/Math.max(pred[category],smallValue));
-			sumPByLevelCorrectCategory.observe(level,category,pred[category]);
+			sumRunByLevelCategory.observe(level,category,weight*1.0/Math.max(pred[category],smallValue));
+			sumPByLevelCorrectCategory.observe(level,category,weight*pred[category]);
 		}
 
 		public BRes encode(final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
@@ -167,25 +168,28 @@ public final class BTable {
 		// go through data to get stats
 		for(final BurstMap row: trainSource) {
 			// score the standard way
-			final Map<Integer,Double> vec = oldAdapter.vector(row);
-			final String resStr = row.getAsString(oldAdapter.def().resultColumn);
-			final int category = oldAdapter.category(resStr);
-			final double[] pred;
-			if(sigmoidLoss!=null) {
-				final ExampleRow ei = new SparseExampleRow(vec,category);
-				pred = sigmoidLoss.predict(oldX,ei);
-			} else {
-				final int no = oldAdapter.noutcomes();
-				pred = new double[no];
-				final double pi = 1.0/(double)no;
-				for(int i=0;i<no;++i) {
-					pred[i] = pi;
+			final double weight = oldAdapter.weight(row);
+			if(weight>0.0) {
+				final Map<Integer,Double> vec = oldAdapter.vector(row);
+				final String resStr = row.getAsString(oldAdapter.def().resultColumn);
+				final int category = oldAdapter.category(resStr);
+				final double[] pred;
+				if(sigmoidLoss!=null) {
+					final ExampleRow ei = new SparseExampleRow(vec,weight,category);
+					pred = sigmoidLoss.predict(oldX,ei);
+				} else {
+					final int no = oldAdapter.noutcomes();
+					pred = new double[no];
+					final double pi = 1.0/(double)no;
+					for(int i=0;i<no;++i) {
+						pred[i] = pi;
+					}
 				}
-			}
-			for(final String variable: stats.keySet()) {
-				final BStat btable = stats.get(variable);
-				final String level = row.getAsString(variable);
-				btable.observe(resStr,level,pred,category);
+				for(final String variable: stats.keySet()) {
+					final BStat btable = stats.get(variable);
+					final String level = row.getAsString(variable);
+					btable.observe(resStr,level,pred,category,weight);
+				}
 			}
 		}
 		// convert stats into encodings
@@ -201,7 +205,7 @@ public final class BTable {
 			bData.put(variable,newCodes);
 		}
 		// build new adapter
-		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),res.levelEncodings,res.levelEncodingNames);
+		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),oldAdapter.weightKey,res.levelEncodings,res.levelEncodingNames);
 		// build warmstart vector
 		if(oldX!=null) {
 			final Map<String,VariableMapping> newAdaptions = new HashMap<String,VariableMapping>();

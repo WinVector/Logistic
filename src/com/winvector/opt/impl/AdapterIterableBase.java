@@ -34,7 +34,7 @@ public abstract class AdapterIterableBase<T extends ExampleRow> implements Itera
 		} else {
 			catInt = -1; // allowed to be missing
 		}
-		return new SparseExampleRow(vec,catInt);
+		return new SparseExampleRow(vec,1.0,catInt);
 	}
 	
 	protected abstract T buildRow(final BurstMap row);

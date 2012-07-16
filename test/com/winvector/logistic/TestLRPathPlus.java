@@ -109,7 +109,7 @@ public class TestLRPathPlus {
 			final Map<Integer,Double> vec = adapter.vector(row);
 			//final String resStr = row.getAsString(adapter.def().resultColumn);
 			//final int category = adapter.category(resStr);
-			final Datum ei = new SparseExampleRow(vec,-1);
+			final Datum ei = new SparseExampleRow(vec,1.0,-1);
 			final double[] pred = sigmoidLoss.predict(x,ei);
 			// score via effects
 			final double[] predE = new double[adapter.outcomeCategories.entrySet().size()];
@@ -146,7 +146,7 @@ public class TestLRPathPlus {
 		final Formula f = new Formula(formulaStr);
 		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrainPlus.buildVariableDefs(f,trainSource);
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept);
+		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
@@ -172,7 +172,8 @@ public class TestLRPathPlus {
 		final File resultFile = new File(tmpDir,"scored.tsv");
 		TestLRPathPlus.copyResourceToFile("com/winvector/logistic/uciCarTrain.tsv",trainFile);
 		final TrivialReader trainSource = new TrivialReader(trainFile.toURI(),'\t',null,false,null, false);
-		(new LogisticTrain()).run(trainSource,new Formula("rating ~ buying + maintenance + doors + persons + lug_boot + safety"),modelFile,null);
+		(new LogisticTrain()).run(trainSource,new Formula("rating ~ buying + maintenance + doors + persons + lug_boot + safety"),null,
+				modelFile,null);
 		final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile));
 		final Model model = (Model)ois.readObject();		
 		ois.close();
@@ -244,7 +245,7 @@ public class TestLRPathPlus {
 			vectorEncodings.put(variable,codes);
 			vectorEncodingNames.put(variable,names);
 		}
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,vectorEncodings,vectorEncodingNames);
+		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null,vectorEncodings,vectorEncodingNames);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1); 
@@ -273,7 +274,7 @@ public class TestLRPathPlus {
 			}
 		}
 		
-		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept);
+		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept,null);
 		final double[] newtonX;
 		final double newtonDataPortion;
 		{
@@ -409,7 +410,7 @@ public class TestLRPathPlus {
 		query.append(" FROM ");
 		query.append(tableName);
 		final Iterable<BurstMap> trainSource = new DBIterable(stmt,query.toString());
-		final Model model = (new LogisticTrainPlus()).train(trainSource,f);
+		final Model model = (new LogisticTrainPlus()).train(trainSource,f,null);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new ExampleRowIterable(model.config,trainSource),model.coefs);
 		assertTrue(trainAccuracy>0.965);

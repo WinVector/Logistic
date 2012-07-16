@@ -48,11 +48,12 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 		final String trainFileName = args[0]; // file with input data in name=value pairs separated by tabs
 		final String formulaStr = args[1]; // name of variable we expect to predict
 		final String resultFileName = args[2];
-		run(trainFileName,formulaStr,resultFileName,5);
+		run(trainFileName,formulaStr,null,resultFileName,5);
 		return 0;
 	}
 		
-	public double run(final String trainFileName, final String formulaStr, final String resultFileName, final int maxNewtonRounds) throws Exception {
+	public double run(final String trainFileName, final String formulaStr, final String weightKey,
+			final String resultFileName, final int maxNewtonRounds) throws Exception {
 		final Log log = LogFactory.getLog(MapReduceLogisticTrain.class);
 		log.info("start");
 		final Formula formula = new Formula(formulaStr); // force an early parse error if wrong
@@ -68,7 +69,7 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 		final WritableVariableList lConfig = MapRedScan.initialScan(tmpPrefix,mrConfig,
 				trainFile,formulaStr);
 		log.info("formula:\t" + formulaStr + "\n" + lConfig.formatState());
-		final VariableEncodings defs = new VariableEncodings(lConfig,true);
+		final VariableEncodings defs = new VariableEncodings(lConfig,true,weightKey);
 		//final WritableSigmoidLossBinomial underlying = new WritableSigmoidLossBinomial(defs.dim());
 		final SigmoidLossMultinomial underlying = new SigmoidLossMultinomial(defs.dim(),defs.noutcomes());
 		final MapRedFn f = new MapRedFn(underlying,lConfig,defs.useIntercept(),
