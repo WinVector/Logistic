@@ -57,4 +57,23 @@ public final class Formula implements Serializable {
 		allTerms.addAll(variables);
 		return allTerms;
 	}
+	
+	@Override
+	public String toString() {
+		final StringBuilder b = new StringBuilder();
+		b.append("formula: " + f + "\n");
+		b.append("\tresult:\t" + resultColumn + "\n");
+		b.append("\tvars:");
+		for(final String vi: variables) {
+			b.append("\t" + vi);
+			if(forcedNumeric.contains(vi)) {
+				b.append(" (forced numeric)");
+			}
+			if(forcedCategorical.contains(vi)) {
+				b.append(" (forced categorical)");
+			}
+		}
+		b.append("\n");
+		return b.toString();
+	}
 }

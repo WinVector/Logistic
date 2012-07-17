@@ -135,9 +135,16 @@ public class PrimaVariableInfo implements Serializable {
 	private static String formatC(final String name, final String what, final Collection<String> levels) {
 		final String sep = "\t";
 		final StringBuilder b = new StringBuilder();
-		b.append("variable" + sep + name + sep + "is" + sep + what + sep + "with levels:");
+		b.append("variable" + sep + name + sep + "is" + sep + what + sep + "with " + levels.size() + " levels:");
+		final int maxPrint = 10;
+		int nPrint = 0;
 		for(final String li: new TreeSet<String>(levels)) {
+			if(nPrint>=maxPrint) {
+				b.append(" ...");
+				break;
+			}
 			b.append(sep + li);
+			++nPrint;
 		}
 		return b.toString();
 	}

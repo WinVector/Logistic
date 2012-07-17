@@ -14,9 +14,9 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
+import com.winvector.opt.impl.ConjugateGradientOptimizer;
 import com.winvector.opt.impl.DataFn;
 import com.winvector.opt.impl.ExampleRowIterable;
-import com.winvector.opt.impl.GradientDescent;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
@@ -37,6 +37,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 		log.info("cwd: " + new File(".").getAbsolutePath());
 		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrain.buildVariableDefs(f,trainSource);
+		System.out.println(def.formatState());
 		final Set<String> varsToEncode = new HashSet<String>();
 		{
 			final StringBuilder encList = new StringBuilder();
@@ -82,8 +83,8 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			newtonX = vectorEncodings.translateTo(standardEncodings,opt);
 		}
 		// gradient polish
-		final VectorOptimizer polisher = new GradientDescent();
-		// final VectorOptimizer polisher = new ConjugateGradientOptimizer(); // Alternative: , TODO: switch from gradient descent to conjugate gradient
+		//final VectorOptimizer polisher = new GradientDescent();
+		final VectorOptimizer polisher = new ConjugateGradientOptimizer();
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),polishRegularization);
@@ -101,12 +102,4 @@ public final class LogisticTrainPlus extends LogisticTrain {
 		model.origFormula = f;
 		return model;
 	}
-	
-	/**
-	 * Another way to do this is:
-	 *   for each large set of levels- replace with effect in overall problem
-	 *   then split into many sub-problems where for each sub-problem we see only one level value
-	 *   pull off effect of other variables from last solution and re-solve for a constant logistic regression model
-	 *   substitute that effect back in and iterate the whole process
-	 */
 }

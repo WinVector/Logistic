@@ -63,6 +63,7 @@ public class LogisticTrain {
 	}
 
 	private static final String TRAINURIKEY = "trainURI";
+	private static final String TRAINSEP = "sep";
 	private static final String TRAINHDLKEY = "trainHDL";
 	private static final String TRAINTBLKEY = "trainTBL";
 	private static final String MEMKEY = "inmemory";
@@ -76,6 +77,7 @@ public class LogisticTrain {
 		final CommandLineParser clparser = new GnuParser();
 		final Options cloptions = new Options();
 		cloptions.addOption(TRAINURIKEY,true,"URI to get training TSV data from");
+		cloptions.addOption(TRAINSEP,true,"(optional) training data input separator");
 		cloptions.addOption(TRAINHDLKEY,true,"XML file to get JDBC connection to training data table");
 		cloptions.addOption(TRAINTBLKEY,true,"table to use from database for training data");
 		cloptions.addOption(MEMKEY, false, "if set data is held in memory during training");
@@ -228,9 +230,13 @@ public class LogisticTrain {
 		DBHandle handle = null;
 		Statement stmt = null;
 		if(cl.getOptionValue(TRAINURIKEY)!=null) {
+			char sep = '\t';
+			if(cl.getOptionValue(TRAINSEP)!=null) {
+				sep = cl.getOptionValue(TRAINSEP).charAt(0);
+			}
 			final URI trainURI = new URI(cl.getOptionValue(TRAINURIKEY));
 			log.info(" source URI: " + trainURI.toString());
-			origSource = new TrivialReader(trainURI,'\t',null,false,null, false);
+			origSource = new TrivialReader(trainURI,sep,null,false,null, false);
 		} else {
 			final URI dbProps = new URI(cl.getOptionValue(TRAINHDLKEY));
 			final String dbTable = cl.getOptionValue(TRAINTBLKEY);
@@ -252,6 +258,7 @@ public class LogisticTrain {
 		} else {
 			trainSource = origSource;
 		}
+		log.info("formula: " + f);
 		final LogisticTrain trainer;
 		if(cl.getOptionValue(TRAINCLASSKEY)!=null) {
 			trainer = (LogisticTrain)Class.forName(cl.getOptionValue(TRAINCLASSKEY)).newInstance();
