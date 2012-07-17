@@ -226,37 +226,48 @@ public class LogisticTrain {
 		final String formulaStr = cl.getOptionValue(FORMULAKEY);       // example: rating ~ buying + maintinance + doors + persons + lug_boot + safety
 		final String weightKey = cl.getOptionValue(WEIGHTKEY);
 		final Formula f = new Formula(formulaStr);
-		final Iterable<BurstMap> origSource;
+		final boolean memorize = cl.hasOption(MEMKEY);
 		DBHandle handle = null;
 		Statement stmt = null;
-		if(cl.getOptionValue(TRAINURIKEY)!=null) {
-			char sep = '\t';
-			if(cl.getOptionValue(TRAINSEP)!=null) {
-				sep = cl.getOptionValue(TRAINSEP).charAt(0);
-			}
-			final URI trainURI = new URI(cl.getOptionValue(TRAINURIKEY));
-			log.info(" source URI: " + trainURI.toString());
-			origSource = new TrivialReader(trainURI,sep,null,false,null, false);
-		} else {
-			final URI dbProps = new URI(cl.getOptionValue(TRAINHDLKEY));
-			final String dbTable = cl.getOptionValue(TRAINTBLKEY);
-			handle = DBUtil.buildConnection(dbProps, true);
-			stmt = handle.conn.createStatement();
-			log.info(" source db: " + handle);
-			origSource = DBIterable.buildSource(handle, stmt, dbTable, f.allTerms());
-			log.info(" query: " + origSource);
-		}
+		final Iterable<BurstMap> trainSource;
 		final File resultFileSer = valueAsFile(cl,RESULTSERKEY);
 		final File resultFileTSV = valueAsFile(cl,RESULTTSVKEY);
-		final Iterable<BurstMap> trainSource;
-		if(cl.hasOption(MEMKEY)) {
-			final ArrayList<BurstMap> list = new ArrayList<BurstMap>();
-			for(final BurstMap row: origSource) {
-				list.add(row);
+		{
+			final Iterable<BurstMap> origSource;
+			if(cl.getOptionValue(TRAINURIKEY)!=null) {
+				char sep = '\t';
+				if(cl.getOptionValue(TRAINSEP)!=null) {
+					sep = cl.getOptionValue(TRAINSEP).charAt(0);
+				}
+				final URI trainURI = new URI(cl.getOptionValue(TRAINURIKEY));
+				log.info(" source URI: " + trainURI.toString());
+				origSource = new TrivialReader(trainURI,sep,null,false,null,memorize);
+			} else {
+				final URI dbProps = new URI(cl.getOptionValue(TRAINHDLKEY));
+				final String dbTable = cl.getOptionValue(TRAINTBLKEY);
+				handle = DBUtil.buildConnection(dbProps, true);
+				stmt = handle.conn.createStatement();
+				log.info(" source db: " + handle);
+				origSource = DBIterable.buildSource(handle, stmt, dbTable, f.allTerms()); // TODO: deep intern db sources also
+				log.info(" query: " + origSource);
 			}
-			trainSource = list;
-		} else {
-			trainSource = origSource;
+			if(memorize) {
+				final ArrayList<BurstMap> list = new ArrayList<BurstMap>();
+				for(final BurstMap row: origSource) {
+					list.add(row);
+				}
+				trainSource = list;
+				if(null!=stmt) {
+					stmt.close();
+					stmt = null;
+				}
+				if(null!=handle) {
+					handle.conn.close();
+					handle = null;
+				}
+			} else {
+				trainSource = origSource;
+			}
 		}
 		log.info("formula: " + f);
 		final LogisticTrain trainer;
