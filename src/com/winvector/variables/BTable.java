@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 
 import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.util.BurstMap;
-import com.winvector.util.CountMap;
-import com.winvector.util.CountMapV;
 
 /**
  * very low dimensional re-encoding of levels
@@ -31,27 +32,39 @@ public final class BTable {
 		public final Map<String,double[]> warmStartByOutcome = new HashMap<String,double[]>();
 	}
 
+	private static final class BLevelRow {
+		public double total = 0.0;
+		public final double[] totalByCategory;
+		public final double[] sumRunCategory;
+		public final double[] sumPCorrectCategory;
+		public final double[] sumPCategory;
+		
+		public BLevelRow(final int noutcomes) {
+			totalByCategory = new double[noutcomes];
+			sumRunCategory = new double[noutcomes];
+			sumPCorrectCategory = new double[noutcomes];
+			sumPCategory = new double[noutcomes];
+		}
+	}
+	
 	/*
 	 * per-variable statistics
 	 */
 	private static final class BStat {
 		// def
+		public final int noutcomes;
 		public final VariableMapping oldAdaption;
+		public final double smallValue;
 		// raw stats
 		public double sumTotal = 0.0;
-		public final CountMap<String> totalByOutcome = new CountMap<String>(CountMap.strCmp);
-		public final CountMapV<String> totalByLevelByCategory;
-		public final CountMap<String> totalByLevel = new CountMap<String>(CountMap.strCmp);
-		public final CountMapV<String> sumRunByLevelCategory;
-		public final CountMapV<String> sumPByLevelCorrectCategory;
-		public final CountMapV<String> sumPByLevelCategory;
+		public final double[] totalByCategory;
+		public final Map<String,BLevelRow> levelStats = new HashMap<String,BLevelRow>(1000);
 
 		public BStat(final VariableMapping oldAdaption, final int noutcomes) {
 			this.oldAdaption = oldAdaption;
-			sumRunByLevelCategory = new CountMapV<String>(CountMap.strCmp,noutcomes);
-			sumPByLevelCorrectCategory = new CountMapV<String>(CountMap.strCmp,noutcomes);
-			sumPByLevelCategory = new CountMapV<String>(CountMap.strCmp,noutcomes);
-			totalByLevelByCategory = new CountMapV<String>(CountMap.strCmp,noutcomes);
+			this.noutcomes = noutcomes;
+			smallValue = 0.1/(double)noutcomes;
+			totalByCategory = new double[noutcomes];
 		}
 		
 		/**
@@ -64,16 +77,19 @@ public final class BTable {
 		 */
 		public void observe(final String outcome, final String level, final double[] pred, final int category, final double weight) {
 			sumTotal += weight;
-			totalByLevel.observe(level,weight);
-			totalByOutcome.observe(outcome,weight);
-			totalByLevelByCategory.observe(level,category,weight);
-			final int nc = pred.length;
-			for(int i=0;i<nc;++i) {
-				sumPByLevelCategory.observe(level,category,weight*pred[i]);
+			totalByCategory[category] += weight;
+			BLevelRow blevelRow = levelStats.get(level);
+			if(null==blevelRow) {
+				blevelRow = new BLevelRow(noutcomes);
+				levelStats.put(level,blevelRow);
 			}
-			final double smallValue = 0.1/(double)nc;
-			sumRunByLevelCategory.observe(level,category,weight*1.0/Math.max(pred[category],smallValue));
-			sumPByLevelCorrectCategory.observe(level,category,weight*pred[category]);
+			blevelRow.total += weight;
+			blevelRow.totalByCategory[category] += weight;
+			for(int i=0;i<noutcomes;++i) {
+				blevelRow.sumPCategory[category] += weight*pred[i];
+			}
+			blevelRow.sumRunCategory[category] += weight*1.0/Math.max(pred[category],smallValue);
+			blevelRow.sumPCorrectCategory[category] += weight*pred[category];
 		}
 
 		public BRes encode(final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
@@ -83,28 +99,33 @@ public final class BTable {
 			for(final String level: oldAdapter.def().catLevels.get(variable).keySet()) {
 				final ArrayList<Double> codev = new ArrayList<Double>(); 
 				final ArrayList<String> coname = new ArrayList<String>(); 
-				final Map<String,Integer> effectPositions = new TreeMap<String,Integer>();
-				final double sumLevel = totalByLevel.get(level) + smooth;
+				final Map<String,Integer> effectPositions = new HashMap<String,Integer>();
+				BLevelRow blevelRow = levelStats.get(level);
+				if(null==blevelRow) {
+					blevelRow = new BLevelRow(noutcomes);
+					levelStats.put(level,blevelRow);
+				}
+				final double sumLevel = blevelRow.total + smooth;
 				for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
 					final String outcome = me.getKey();
 					final int category = me.getValue();
-					final double sumOutcome = totalByOutcome.get(outcome) + smooth;
-					final double sumLevelOutcome = totalByLevelByCategory.get(level,category) + smooth;
+					final double sumOutcome = totalByCategory[category] + smooth;
+					final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
 					final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
 					codev.add(bayesTerm);
 					coname.add("bayes_" + outcome);
 					codev.add(Math.log(bayesTerm));
 					coname.add("logbayes_" + outcome);
-					final double sumRun = sumRunByLevelCategory.get(level,category) + smooth;
+					final double sumRun = blevelRow.sumRunCategory[category] + smooth;
 					final double runTerm = sumRun/sumLevel;
 					codev.add(runTerm);
 					coname.add("runTerm_" + outcome);
 					codev.add(Math.log(runTerm));
 					coname.add("logRunTerm_" + outcome);
-					final double superBalanceTerm = (totalByLevelByCategory.get(level,category) - sumPByLevelCorrectCategory.get(level,category))/sumLevel;
+					final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
 					codev.add(superBalanceTerm);
 					coname.add("superBalance_" + outcome);
-					final double balanceTerm = (totalByLevelByCategory.get(level,category) - sumPByLevelCategory.get(level,category))/sumLevel;
+					final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
 					codev.add(balanceTerm);
 					coname.add("balance_" + outcome);
 					if(oldX!=null) {
@@ -139,8 +160,8 @@ public final class BTable {
 		}
 	}
 	
-	public final Map<String,Map<String,double[]>> levelEncodings = new TreeMap<String,Map<String,double[]>>();
-	public final Map<String,Map<String,String[]>> levelEncodingNames = new TreeMap<String,Map<String,String[]>>();
+	public final Map<String,Map<String,double[]>> levelEncodings = new HashMap<String,Map<String,double[]>>();
+	public final Map<String,Map<String,String[]>> levelEncodingNames = new HashMap<String,Map<String,String[]>>();
 	public VariableEncodings oldAdapter;
 	public VariableEncodings newAdapter;
 	public double[] warmStart = null;
@@ -148,6 +169,7 @@ public final class BTable {
 	public static BTable buildStatBasedEncodings(final Set<String> varsToEncode,
 			final Iterable<BurstMap> trainSource, final VariableEncodings oldAdapter, 
 			final double[] oldX) {
+		final Log log = LogFactory.getLog(BTable.class);
 		final Map<String,BStat> stats = new HashMap<String,BStat>();
 		{
 			// build a quick list to access stats we are interested in
@@ -166,6 +188,7 @@ public final class BTable {
 			sigmoidLoss = null;
 		}
 		// go through data to get stats
+		log.info("start variable re-encoding scan");
 		for(final BurstMap row: trainSource) {
 			// score the standard way
 			final double weight = oldAdapter.weight(row);
@@ -192,6 +215,8 @@ public final class BTable {
 				}
 			}
 		}
+		log.info("done variable re-encoding scan");
+		log.info("start new adapter construction");
 		// convert stats into encodings
 		final Map<String,BRes> bData = new HashMap<String,BRes>();
 		final BTable res = new BTable();
@@ -235,6 +260,7 @@ public final class BTable {
 				}
 			}
 		}
+		log.info("done new adapter construction");
 		return res;
 	}
 
