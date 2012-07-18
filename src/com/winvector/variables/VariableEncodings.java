@@ -2,6 +2,7 @@ package com.winvector.variables;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -88,8 +89,8 @@ public final class VariableEncodings implements Serializable {
 		return 1.0;
 	}
 	
-	public SortedMap<Integer,Double> vector(final BurstMap row) {
-		final SortedMap<Integer,Double> vec = new TreeMap<Integer,Double>(); 
+	public Map<Integer,Double> vector(final BurstMap row) { // TODO: move to object-free sparse structure
+		final Map<Integer,Double> vec = new HashMap<Integer,Double>(); 
 		for(final VariableMapping adaption: adaptions) {
 			adaption.process(row,vec);
 		}

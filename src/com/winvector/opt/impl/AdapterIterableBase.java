@@ -1,8 +1,8 @@
 package com.winvector.opt.impl;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
 
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.util.BurstMap;
@@ -23,7 +23,7 @@ public abstract class AdapterIterableBase<T extends ExampleRow> implements Itera
 		if((resStr==null)||(resStr.length()<=0)) {
 			return null;
 		}
-		final SortedMap<Integer, Double> vec = adapter.vector(row);
+		final Map<Integer, Double> vec = adapter.vector(row);
 		if(vec==null) {
 			return null;
 		}

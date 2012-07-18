@@ -3,7 +3,7 @@ package com.winvector.logistic.mr;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.SortedMap;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -87,7 +87,7 @@ public final class MapRedAccuracy {
 			final String origStr = value.toString();
 			final BurstMap parsed = burster.parse(origStr);
 			if(!parsed.isEmpty()) {
-				final SortedMap<Integer, Double> v = defs.vector(parsed);
+				final Map<Integer, Double> v = defs.vector(parsed);
 				final double wt = defs.weight(parsed);
 				if((wt>0.0)&&(v!=null)) {
 					int catInt = -1;
