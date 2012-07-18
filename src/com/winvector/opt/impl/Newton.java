@@ -94,6 +94,7 @@ public final class Newton implements VectorOptimizer {
 	public VEval maximizeStep(final VectorFn f, final double[] x0,
 			final VEval cachedEval,
 			final boolean wantGrad, final boolean wantHessian) {
+		log.info("start Newton step: " + ((cachedEval!=null)?""+cachedEval.fx:"")); 
 		final VEval[] bestEval = new VEval[1];  // vector so gradient polish can alter value
 		if(cachedEval!=null && cachedEval.gx!=null && cachedEval.hx!=null) {
 			bestEval[0] = cachedEval;
@@ -122,6 +123,7 @@ public final class Newton implements VectorOptimizer {
 			@SuppressWarnings("unused")
 			final com.winvector.opt.impl.GradientDescent.StepStatus status = gd.gradientPolish(f, bestEval[0], bestEval);
 		}
+		log.info("done Newton step: " + ((bestEval[0]!=null)?""+bestEval[0].fx:"")); 
 		return bestEval[0];
 	}
 
