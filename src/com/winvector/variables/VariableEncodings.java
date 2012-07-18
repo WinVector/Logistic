@@ -85,8 +85,8 @@ public final class VariableEncodings implements Serializable {
 	
 	public double weight(final BurstMap row) {
 		if(null!=weightKey) {
-			final Double v = row.getAsDouble(weightKey);
-			if(null!=v) {
+			final double v = row.getAsDouble(weightKey);
+			if(!Double.isNaN(v)) {
 				return v;
 			}
 		}
@@ -98,7 +98,7 @@ public final class VariableEncodings implements Serializable {
 	 * @param row
 	 * @return
 	 */
-	public SparseSemiVec vector(final BurstMap row) { // TODO: move to object-free sparse structure
+	public SparseSemiVec vector(final BurstMap row) {
 		Arrays.fill(vtmp,0.0);
 		for(final VariableMapping adaption: adaptions) {
 			adaption.process(row,vtmp);

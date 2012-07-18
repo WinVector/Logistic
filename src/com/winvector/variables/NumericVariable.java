@@ -33,8 +33,8 @@ public final class NumericVariable implements VariableMapping {
 	
 	@Override
 	public void process(final BurstMap row, final double[] vec) {
-		final Double v = row.getAsDouble(origColumn);
-		if(v!=null) {
+		final double v = row.getAsDouble(origColumn);
+		if(!Double.isNaN(v)) {
 			if(v!=0.0) {
 				vec[index] = v;
 			}				
