@@ -2,11 +2,10 @@ package com.winvector.logistic;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 
 public class RExample implements Iterable<ExampleRow> {
 	private final double[][] rawdat;
@@ -29,14 +28,14 @@ public class RExample implements Iterable<ExampleRow> {
 			next = null;
 			while((next==null)&&(i<rawdat.length)) {
 				final int category = rawdat[i][dim-1]>0.5?1:0;
-				final SortedMap<Integer,Double> vec = new TreeMap<Integer,Double>();
-				vec.put(0,1.0);
+				final double[] vec = new double[dim];
+				vec[0] = 1.0;
 				for(int j=0;j<dim-1;++j) {
 					if(rawdat[i][j]!=0.0) {
-						vec.put(j+1,rawdat[i][j]);
+						vec[j+1] = rawdat[i][j];
 					}
 				}
-				next = new SparseExampleRow(vec,1.0,category);
+				next = new SparseExampleRow(new SparseSemiVec(vec),1.0,category);
 				++i;
 			}
 		}

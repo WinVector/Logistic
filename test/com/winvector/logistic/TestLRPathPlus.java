@@ -50,6 +50,7 @@ import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.CountMap;
 import com.winvector.util.TrivialReader;
@@ -106,7 +107,7 @@ public class TestLRPathPlus {
 		// confirm effects work like we think
 		for(final BurstMap row: trainSource) {
 			// score the standard way
-			final Map<Integer,Double> vec = adapter.vector(row);
+			final SparseSemiVec vec = adapter.vector(row);
 			//final String resStr = row.getAsString(adapter.def().resultColumn);
 			//final int category = adapter.category(resStr);
 			final Datum ei = new SparseExampleRow(vec,1.0,-1);

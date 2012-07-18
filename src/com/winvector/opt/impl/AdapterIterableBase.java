@@ -1,7 +1,6 @@
 package com.winvector.opt.impl;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.winvector.opt.def.ExampleRow;
@@ -23,7 +22,7 @@ public abstract class AdapterIterableBase<T extends ExampleRow> implements Itera
 		if((resStr==null)||(resStr.length()<=0)) {
 			return null;
 		}
-		final Map<Integer, Double> vec = adapter.vector(row);
+		final SparseSemiVec vec = adapter.vector(row);
 		if(vec==null) {
 			return null;
 		}

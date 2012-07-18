@@ -3,7 +3,6 @@ package com.winvector.logistic.mr;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +24,7 @@ import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.LineBurster;
 import com.winvector.util.SerialUtils;
@@ -87,7 +87,7 @@ public final class MapRedAccuracy {
 			final String origStr = value.toString();
 			final BurstMap parsed = burster.parse(origStr);
 			if(!parsed.isEmpty()) {
-				final Map<Integer, Double> v = defs.vector(parsed);
+				final SparseSemiVec v = defs.vector(parsed);
 				final double wt = defs.weight(parsed);
 				if((wt>0.0)&&(v!=null)) {
 					int catInt = -1;

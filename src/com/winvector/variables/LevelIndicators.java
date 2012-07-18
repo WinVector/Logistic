@@ -56,12 +56,12 @@ public final class LevelIndicators implements VariableMapping {
 	
 
 	@Override
-	public void process(final BurstMap row, final Map<Integer, Double> vec) {
+	public void process(final BurstMap row, final double[] vec) {
 		final String level = row.getAsString(origColumn);
 		if(level!=null) {
 			final Integer code = levelCodes.get(level);
 			if(code!=null) {
-				vec.put(index+code,1.0);	
+				vec[index+code] = 1.0;	
 			}
 		}
 	}

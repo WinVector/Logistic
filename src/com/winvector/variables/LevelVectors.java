@@ -52,13 +52,13 @@ public final class LevelVectors implements VariableMapping {
 	
 
 	@Override
-	public void process(final BurstMap row, final Map<Integer, Double> vec) {
+	public void process(final BurstMap row, final double[] vec) {
 		final String level = row.getAsString(origColumn);
 		if(level!=null) {
 			final double[] code = levelCodes.get(level);
 			if(code!=null) {
 				for(int i=0;i<targetDim;++i) {
-					vec.put(index+i,code[i]);
+					vec[index+i] = code[i];
 				}
 			}
 		}

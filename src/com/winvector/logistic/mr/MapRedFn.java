@@ -5,7 +5,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +28,7 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.LineBurster;
 import com.winvector.util.SerialUtils;
@@ -170,7 +170,7 @@ public final class MapRedFn implements VectorFn {
 				if((resStr!=null)&&(resStr.length()>0)) {
 					final Integer category = defs.category(resStr.trim());
 					if((category!=null)&&(category>=0)) {
-						final Map<Integer,Double> v = defs.vector(parsed);
+						final SparseSemiVec v = defs.vector(parsed);
 						final double wt = defs.weight(parsed);
 						if((wt>0.0)&&(v!=null)) {
 							final ExampleRow r = new SparseExampleRow(v,wt,category);

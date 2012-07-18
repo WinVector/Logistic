@@ -2,12 +2,13 @@ package com.winvector.variables;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.CountMap;
 
@@ -25,6 +26,8 @@ public final class VariableEncodings implements Serializable {
 	// derived results
 	public final SortedMap<String,Integer> outcomeCategories = new TreeMap<String,Integer>();
 	private final ArrayList<String> outcomeNames = new ArrayList<String>();
+	// scratch state
+	private final double[] vtmp;
 	
 	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey,
 			final Map<String,Map<String,double[]>> vectorEncodings, final Map<String,Map<String,String[]>> vectorEncodingNames) {
@@ -56,6 +59,7 @@ public final class VariableEncodings implements Serializable {
 			adapterDim += adaption.indexR() - adaption.indexL();
 		}
 		vdim = adapterDim;
+		vtmp = new double[vdim];
 		// encode outcome
 		for(final String oci: new TreeSet<String>(def.outcomes.keySet())) {
 			outcomeCategories.put(oci,outcomeCategories.size());
@@ -89,12 +93,17 @@ public final class VariableEncodings implements Serializable {
 		return 1.0;
 	}
 	
-	public Map<Integer,Double> vector(final BurstMap row) { // TODO: move to object-free sparse structure
-		final Map<Integer,Double> vec = new HashMap<Integer,Double>(); 
+	/**
+	 * WARNING: not thread safe due to use of class shared vtmp
+	 * @param row
+	 * @return
+	 */
+	public SparseSemiVec vector(final BurstMap row) { // TODO: move to object-free sparse structure
+		Arrays.fill(vtmp,0.0);
 		for(final VariableMapping adaption: adaptions) {
-			adaption.process(row,vec);
+			adaption.process(row,vtmp);
 		}
-		return vec;
+		return new SparseSemiVec(vtmp);
 	}
 	
 	public Map<String[],Double> decodeSolution(final double[] x, final boolean writeName) {

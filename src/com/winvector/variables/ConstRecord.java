@@ -1,6 +1,5 @@
 package com.winvector.variables;
 
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -31,8 +30,8 @@ public final class ConstRecord implements VariableMapping {
 	}
 
 	@Override
-	public void process(final BurstMap row, final Map<Integer, Double> vec) {
-		vec.put(index,1.0);
+	public void process(final BurstMap row, final double[] vec) {
+		vec[index] = 1.0;
 	}
 
 	@Override

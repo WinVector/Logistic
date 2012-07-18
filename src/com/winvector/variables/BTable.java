@@ -13,6 +13,7 @@ import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 
 /**
@@ -193,7 +194,7 @@ public final class BTable {
 			// score the standard way
 			final double weight = oldAdapter.weight(row);
 			if(weight>0.0) {
-				final Map<Integer,Double> vec = oldAdapter.vector(row);
+				final SparseSemiVec vec = oldAdapter.vector(row);
 				final String resStr = row.getAsString(oldAdapter.def().resultColumn);
 				final int category = oldAdapter.category(resStr);
 				final double[] pred;

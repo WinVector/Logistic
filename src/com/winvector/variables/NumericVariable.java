@@ -1,6 +1,5 @@
 package com.winvector.variables;
 
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -33,11 +32,11 @@ public final class NumericVariable implements VariableMapping {
 	}
 	
 	@Override
-	public void process(final BurstMap row, final Map<Integer, Double> vec) {
+	public void process(final BurstMap row, final double[] vec) {
 		final Double v = row.getAsDouble(origColumn);
 		if(v!=null) {
 			if(v!=0.0) {
-				vec.put(index,v);
+				vec[index] = v;
 			}				
 		}
 	}

@@ -1,7 +1,6 @@
 package com.winvector.variables;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.SortedMap;
 
 import com.winvector.util.BurstMap;
@@ -32,7 +31,7 @@ public interface VariableMapping extends Serializable {
 	 * @param row
 	 * @param vec
 	 */
-	void process(BurstMap row, Map<Integer, Double> vec);
+	void process(BurstMap row, double[] vec);
 
 	/**
 	 * type of adaption
