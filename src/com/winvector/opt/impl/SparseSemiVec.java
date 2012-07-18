@@ -13,7 +13,7 @@ public final class SparseSemiVec implements Serializable {
 		final int dim = denseVec.length;
 		int ii = 0;
 		for(int i=0;i<dim;++i) {
-			if(Math.abs(denseVec[i])!=0.0) {
+			if(denseVec[i]!=0.0) {
 				++ii;
 			}
 		}
@@ -22,7 +22,7 @@ public final class SparseSemiVec implements Serializable {
 		values = new double[card];
 		ii = 0;
 		for(int i=0;(i<dim)&&(ii<card);++i) {
-			if(Math.abs(denseVec[i])!=0.0) {
+			if(denseVec[i]!=0.0) {
 				indices[ii] = i;
 				values[ii] = denseVec[i];
 				++ii;
