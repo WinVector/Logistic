@@ -279,15 +279,16 @@ public class TestLRPathPlus {
 		final double[] newtonX;
 		final double newtonDataPortion;
 		{
+			final Random rand = new Random(23626236L);
 			double[] opt = null;
 			double optfx = Double.NEGATIVE_INFINITY;
-			BTable vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,standardEncodings,null);
+			BTable vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,standardEncodings,null,rand);
 			for(int pass=0;pass<5;++pass) {
 				System.out.println("pass: " + pass);
 				if(opt!=null) {
 					final Map<String[],Double> decodeOld = vectorEncodings.newAdapter.decodeSolution(opt,true);
 					final double preScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
-					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt);
+					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt,rand);
 					System.out.println("warmstart vector: " + LinUtil.toString(vectorEncodings.warmStart));
 					System.out.println("warmstart details:\n" + vectorEncodings.newAdapter.formatSoln(vectorEncodings.warmStart));
 					final Map<String[],Double> decodeNew = vectorEncodings.newAdapter.decodeSolution(vectorEncodings.warmStart,true);
@@ -307,7 +308,9 @@ public class TestLRPathPlus {
 					assertTrue(relDiff(preScore,postScore)<1.0e-3);
 					opt = vectorEncodings.warmStart;
 				}
-				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,trainSource);
+				System.out.println("old adapter: " + vectorEncodings.oldAdapter);
+				System.out.println("new adapter: " + vectorEncodings.newAdapter);
+				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
 				final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
 				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);  // should be lower like 1.0e-3 but 0.1 forces more passes
 				final VectorOptimizer nwt = new Newton();

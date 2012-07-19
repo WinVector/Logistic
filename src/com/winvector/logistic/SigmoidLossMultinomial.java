@@ -2,6 +2,8 @@ package com.winvector.logistic;
 
 
 
+import java.util.Arrays;
+
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
@@ -28,25 +30,36 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 	}
 	
 	@Override
-	public double[] predict(final double[] x, final Datum ei) {
-		final double[] r = new double[noutcomes];
+	public void predict(final double[] x, final Datum ei, final double[] r) {
+		Arrays.fill(r,0.0);
 		for(int i=0;i<noutcomes;++i) {
 			r[i] = HelperFns.dot(ei,x,i*vdim);
 		}
 		HelperFns.expScale(r);
+	}
+
+	@Override
+	public double[] predict(final double[] x, final Datum ei) {
+		final double[] r = new double[noutcomes];
+		predict(x,ei,r);
 		return r;
 	}
-	
+
 	@Override
 	public int dim() {
 		return vdim*noutcomes;
 	}
+
+	@Override
+	public int noutcomes() {
+		return noutcomes;
+	}
 	
 	@Override
-	public void addTerm(final double[] x, final boolean wantGrad, final boolean wantHessian, final ExampleRow di, final VEval r) {
+	public void addTerm(final double[] x, final boolean wantGrad, final boolean wantHessian, final ExampleRow di, final VEval r, final double[] pred) {
 		final double wt = di.weight();
 		if(wt>0.0) {
-			final double[] pred = predict(x,di);
+			predict(x,di,pred);
 			r.fx += wt*Math.log(pred[di.category()]);
 			final int nindices;
 			if(wantGrad||wantHessian) {

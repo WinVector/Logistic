@@ -156,4 +156,9 @@ public final class VariableEncodings implements Serializable {
 	public Integer category(final String s) {
 		return outcomeCategories.get(s);
 	}
+	
+	@Override
+	public String toString() {
+		return "VariableEncoding dim: " + vdim;
+	}
 }

@@ -140,6 +140,8 @@ public final class MapRedFn implements VectorFn {
 		private VariableEncodings defs = null;
 		private Log log = null;
 		private String hostDescr = null;
+		// scratch
+		private double[] pscratch = null;
 		// result
 		private long nProcessed = 0;
 		private VEval accum = null;
@@ -158,6 +160,7 @@ public final class MapRedFn implements VectorFn {
 			config = JobStateDescr.fromString(context.getConfiguration().get(MRFIELDNAME));
 			defs = new VariableEncodings(config.defs,config.useIntercept,config.weightKey);
 			accum = new VEval(config.x,config.wantGrad,config.wantHessian);
+			pscratch = new double[defs.noutcomes()];
 			nProcessed = 0;
 		}
 
@@ -174,7 +177,7 @@ public final class MapRedFn implements VectorFn {
 						final double wt = defs.weight(parsed);
 						if((wt>0.0)&&(v!=null)) {
 							final ExampleRow r = new SparseExampleRow(v,wt,category);
-							config.underlying.addTerm(config.x, config.wantGrad, config.wantHessian, r, accum);
+							config.underlying.addTerm(config.x, config.wantGrad, config.wantHessian, r, accum, pscratch);
 							++nProcessed;
 						}
 					}

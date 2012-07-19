@@ -2,8 +2,10 @@ package com.winvector.opt.impl;
 
 import java.io.Serializable;
 
+import com.winvector.opt.def.Datum;
 
-public final class SparseSemiVec implements Serializable {
+
+public final class SparseSemiVec implements Datum,Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private final int[] indices;

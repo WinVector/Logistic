@@ -3,6 +3,7 @@ package com.winvector.logistic;
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -58,14 +59,16 @@ public final class LogisticTrainPlus extends LogisticTrain {
 		{
 			double[] opt = null;
 			double optfx = Double.NEGATIVE_INFINITY;
-			BTable vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,standardEncodings,null);
+			final Random rand = new Random(23626236L);
+			BTable vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,standardEncodings,null,rand);
 			for(int pass=0;pass<5;++pass) {
 				log.info("Newton pass: " + pass);
 				if(opt!=null) {
-					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt);
+					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt,rand);
 					opt = vectorEncodings.warmStart;
 				}
-				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,trainSource);
+				System.out.println("std dim: " + standardEncodings.dim() + ", adapter dim: " + vectorEncodings.newAdapter.dim());
+				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
 				final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
 				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),newtonRegularization);
 				final VectorOptimizer nwt = new Newton();
@@ -88,7 +91,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),polishRegularization);
-		final VEval opt = polisher.maximize(sl,newtonX,20);
+		final VEval opt = polisher.maximize(sl,newtonX,5);
 		log.info("done gradient polish training\t" + new Date());
 		
 		log.info("soln vector: " + LinUtil.toString(opt.x));

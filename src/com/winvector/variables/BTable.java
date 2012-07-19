@@ -1,13 +1,14 @@
 package com.winvector.variables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 
 import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.opt.def.ExampleRow;
@@ -15,6 +16,8 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
+import com.winvector.util.ResevoirSampler;
+import com.winvector.util.Ticker;
 
 /**
  * very low dimensional re-encoding of levels
@@ -166,10 +169,11 @@ public final class BTable {
 	public VariableEncodings oldAdapter;
 	public VariableEncodings newAdapter;
 	public double[] warmStart = null;
+	public Iterable<BurstMap> sample = null;
 
 	public static BTable buildStatBasedEncodings(final Set<String> varsToEncode,
 			final Iterable<BurstMap> trainSource, final VariableEncodings oldAdapter, 
-			final double[] oldX) {
+			final double[] oldX, final Random rand) {
 		final Log log = LogFactory.getLog(BTable.class);
 		final Map<String,BStat> stats = new HashMap<String,BStat>();
 		{
@@ -190,24 +194,26 @@ public final class BTable {
 		}
 		// go through data to get stats
 		log.info("start variable re-encoding scan");
+		final Ticker ticker = new Ticker();
+		final ResevoirSampler<BurstMap> sampler = new ResevoirSampler<BurstMap>(100000,rand.nextLong());
+		final double[] pred = new double[oldAdapter.noutcomes()];
+		if(null==sigmoidLoss) {
+			final int no = oldAdapter.noutcomes();
+			final double pi = 1.0/(double)no;
+			Arrays.fill(pred,pi);			
+		}
 		for(final BurstMap row: trainSource) {
+			ticker.tick();
 			// score the standard way
 			final double weight = oldAdapter.weight(row);
 			if(weight>0.0) {
+				sampler.observe(row);
 				final SparseSemiVec vec = oldAdapter.vector(row);
 				final String resStr = row.getAsString(oldAdapter.def().resultColumn);
 				final int category = oldAdapter.category(resStr);
-				final double[] pred;
 				if(sigmoidLoss!=null) {
 					final ExampleRow ei = new SparseExampleRow(vec,weight,category);
-					pred = sigmoidLoss.predict(oldX,ei);
-				} else {
-					final int no = oldAdapter.noutcomes();
-					pred = new double[no];
-					final double pi = 1.0/(double)no;
-					for(int i=0;i<no;++i) {
-						pred[i] = pi;
-					}
+					sigmoidLoss.predict(oldX,ei,pred);
 				}
 				for(final String variable: stats.keySet()) {
 					final BStat btable = stats.get(variable);
@@ -217,10 +223,11 @@ public final class BTable {
 			}
 		}
 		log.info("done variable re-encoding scan");
+		final BTable res = new BTable();
+		res.sample = sampler.data();
 		log.info("start new adapter construction");
 		// convert stats into encodings
 		final Map<String,BRes> bData = new HashMap<String,BRes>();
-		final BTable res = new BTable();
 		res.oldAdapter = oldAdapter;
 		for(final Map.Entry<String,BStat> me: stats.entrySet()) {
 			final String variable = me.getKey();

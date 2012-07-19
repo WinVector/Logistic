@@ -30,11 +30,12 @@ import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.DataFn;
+import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
 import com.winvector.util.BurstMap;
+import com.winvector.util.Ticker;
 import com.winvector.util.TrivialReader;
 import com.winvector.variables.PrimaVariableInfo;
 import com.winvector.variables.VariableEncodings;
@@ -43,15 +44,23 @@ public class LogisticTrain {
 	
 	public static PrimaVariableInfo buildVariableDefs(final Formula f, final Iterable<BurstMap> source) {
 		// pass to get numeric columns and categorical columns
+		final Log log = LogFactory.getLog(LogisticTrain.class);
 		final PrimaVariableInfo def = new PrimaVariableInfo();
 		def.readyForDefTracking(f);
+		log.info("start variable def scan 1/2");
+		final Ticker ticker = new Ticker();
 		for (BurstMap row : source) {
+			ticker.tick();
 			def.trackVariableDefsFromRow(row);
 		}
+		log.info("start variable def scan 2/2");
+		ticker.start();
 		// pass to get levels of categorical variables
 		for(BurstMap row: source) {
+			ticker.tick();
 			def.trackVariableLevelsFromRow(row);
 		}
+		log.info("done variable def scans");
 		def.trimStuckLevels();
 		return def;
 	}
