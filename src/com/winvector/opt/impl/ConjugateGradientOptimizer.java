@@ -9,9 +9,9 @@ import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
 
-// TODO: test
+// TODO: test more
 public final class ConjugateGradientOptimizer implements VectorOptimizer {
-	private int debug = 2;
+	private int debug = 0;
 	private final Log log = LogFactory.getLog(ConjugateGradientOptimizer.class);
 	private final double minGNormSq = 1.0e-20;
 	private final double minMotionSq = 1.0e-14;

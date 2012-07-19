@@ -10,7 +10,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinUtil;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
@@ -27,16 +26,17 @@ import com.winvector.variables.PrimaVariableInfo;
 import com.winvector.variables.VariableEncodings;
 
 public final class LogisticTrainPlus extends LogisticTrain {
+	public int maxExplicitLevels = 100;
+	public double newtonRegularization = 1.0e-3;
+	public double polishRegularization = 1.0e-5;
+	public boolean gradientPolish = false;
+	public boolean useIntercept = true;
 
 	@Override
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
 		final Log log = LogFactory.getLog(this.getClass());
-		final int maxExplicitLevels = 100;
-		final double newtonRegularization = 1.0e-3;
-		final double polishRegularization = 1.0e-5;
 		log.info("start LogisticTrainPlus");
 		log.info("cwd: " + new File(".").getAbsolutePath());
-		final boolean useIntercept = true;
 		final PrimaVariableInfo def = LogisticTrain.buildVariableDefs(f,trainSource);
 		System.out.println(def.formatState());
 		final Set<String> varsToEncode = new HashSet<String>();
@@ -85,24 +85,31 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			// decode x to standard basis
 			newtonX = vectorEncodings.translateTo(standardEncodings,opt);
 		}
-		// gradient polish
-		//final VectorOptimizer polisher = new GradientDescent();
-		final VectorOptimizer polisher = new ConjugateGradientOptimizer();
-		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),polishRegularization);
-		final VEval opt = polisher.maximize(sl,newtonX,5);
-		log.info("done gradient polish training\t" + new Date());
-		
-		log.info("soln vector: " + LinUtil.toString(opt.x));
-		log.info("soln details:\n" + standardEncodings.formatSoln(opt.x));
-		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt.x);
-		log.info("train accuracy: " + trainAccuracy);
-		log.info("done LogisticTrain");
 		final Model model = new Model();
 		model.config = standardEncodings;
-		model.coefs = opt.x;
 		model.origFormula = f;
+		// gradient polish
+		if(gradientPolish) {
+			//final VectorOptimizer polisher = new GradientDescent();
+			final VectorOptimizer polisher = new ConjugateGradientOptimizer();
+			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
+			final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
+			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),polishRegularization);
+			final VEval opt = polisher.maximize(sl,newtonX,5);
+			log.info("done gradient polish training\t" + new Date());
+			//log.info("soln vector: " + LinUtil.toString(opt.x));
+			//log.info("soln details:\n" + standardEncodings.formatSoln(opt.x));
+			model.coefs = opt.x;
+			//final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt.x);
+			//log.info("train accuracy: " + trainAccuracy);
+			///log.info("done LogisticTrain");
+		} else {
+			model.coefs = newtonX;
+		}
+		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
+		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
+		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,model.coefs);
+		log.info("train accuracy:" + trainAccuracy);
 		return model;
 	}
 }

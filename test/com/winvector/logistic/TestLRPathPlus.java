@@ -162,6 +162,22 @@ public class TestLRPathPlus {
 	}
 
 	
+	@Test
+	public void testTrainPlusAdpat() throws Exception {
+		final Iterable<BurstMap> trainSource = TestLRPathPlus.readBurstFromResource("com/winvector/logistic/uciCarTrain.tsv");
+		final String formulaStr = "rating ~ buying + maintenance + doors + persons + lug_boot + safety";
+		final Formula f = new Formula(formulaStr);
+		for(final boolean gradientPolish: new boolean[] { true, false}) {
+			final LogisticTrainPlus trainPlus = new LogisticTrainPlus();
+			trainPlus.maxExplicitLevels = 2;
+			trainPlus.gradientPolish = gradientPolish;
+			final Model model = trainPlus.train(trainSource, f, null);
+			final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(model.config,trainSource);
+			final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,model.coefs);
+			assertTrue(trainAccuracy>0.95);
+		}
+	}
 	
 	@Test
 	public void testTrainScore() throws Exception {

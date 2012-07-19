@@ -56,8 +56,9 @@ public class HelperFns {
 	public static <T extends ExampleRow> double accuracy(final LinearContribution<T> fn, final Iterable<ExampleRow> as, final double[] x) {
 		int n = 0;
 		int nGood = 0;
+		final double[] pred = new double[fn.noutcomes()];
 		for(final ExampleRow ei: as) {
-			final double[] pred = fn.predict(x,ei);
+			fn.predict(x,ei,pred);
 			if(ei.category()>=0) {
 				final boolean good = (pred!=null)&&isGoodPrediction(pred,ei);
 				if(good) {
