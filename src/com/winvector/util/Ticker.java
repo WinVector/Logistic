@@ -6,8 +6,8 @@ import org.apache.commons.logging.LogFactory;
 
 public final class Ticker {
 	private final Log log = LogFactory.getLog(Ticker.class);
-	private final long checkIntervalMillis = 1000L;
-	private final long reportIntervalMillis = 10000L;
+	private final long checkIntervalMillis = 200L;
+	private final long reportIntervalMillis = 60000L;
 	private long startTimeMillis;
 	private long nTicks;
 	private long nextCheckTick;
@@ -22,6 +22,9 @@ public final class Ticker {
 		nTicks = 0;
 		nextCheckTick = 0;
 		nextReportTimeMillis = startTimeMillis - (startTimeMillis%reportIntervalMillis) + reportIntervalMillis;
+		if(nextReportTimeMillis-startTimeMillis<reportIntervalMillis/2) {
+			nextReportTimeMillis += reportIntervalMillis;
+		}
 	}
 
 	public void tick() {
