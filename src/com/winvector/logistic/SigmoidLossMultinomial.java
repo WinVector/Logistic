@@ -23,6 +23,7 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 	
 	public final int vdim;
 	public final int noutcomes;
+	public boolean useFastExp = false;
 	
 	public SigmoidLossMultinomial(final int vdim, final int noutcomes) {
 		this.vdim = vdim;
@@ -35,7 +36,11 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 		for(int i=0;i<noutcomes;++i) {
 			r[i] = HelperFns.dot(ei,x,i*vdim);
 		}
-		HelperFns.expScale(r);
+		if(useFastExp) {
+			HelperFns.expScaleFast(r);
+		} else {
+			HelperFns.expScale(r);
+		}
 	}
 
 	@Override

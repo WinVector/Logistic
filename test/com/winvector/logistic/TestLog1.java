@@ -13,13 +13,6 @@ import com.winvector.opt.impl.NormPenalty;
 
 public class TestLog1 extends TestCase {
 	
-	public void testFns() {
-		for(final double link: new double[] { -3.3, 2.2, 0.0, 1.2, 3} ) {
-			final double px = HelperFns.px(link);
-			assertTrue(Math.abs(Math.log(px)-HelperFns.logpx(link))<1.0e-3);
-			assertTrue(Math.abs(Math.log(1.0-px)-HelperFns.logOMpx(link))<1.0e-3);
-		}
-	}
 	
 	public void testGH() {
 		final double[][] dat = {

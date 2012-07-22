@@ -27,7 +27,7 @@ public class TestLogM extends TestCase {
 		for(int i=0;i<sl.dim();++i) {
 			x0[i] = i+1;
 		}
-		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
+		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-2); // very sensitive to epsilon
 	}
 
 	public void testMHR() {
@@ -43,7 +43,7 @@ public class TestLogM extends TestCase {
 		for(int i=0;i<sl.dim();++i) {
 			x0[i] = i+1;
 		}
-		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-4); // very sensitive to epsilon
+		TestOpt.testGradAndHessian(sl,x0,1.0e-5,1.0e-2); // very sensitive to epsilon
 	}
 	
 	/**

@@ -9,37 +9,8 @@ import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 
 public class HelperFns {
-	public static double px(final double x) {
-		if(x>0) {
-			return 1.0/(1.0 + Math.exp(-x));
-		} else if(x<0) {
-			final double e = Math.exp(x);
-			return e/(1.0 + e);
-		} else {
-			return 0.5;
-		}
-	}
-	
-	public static double logpx(final double x) {
-		if(x>0) {
-			return -Math.log(1+Math.exp(-x));
-		} else if(x<0) {
-			return x - Math.log(1.0 + Math.exp(x));
-		} else {
-			return Math.log(0.5);
-		}		
-	}
-	
-	public static double logOMpx(final double x) {
-		if(x>0) {
-			return -x - Math.log(1 + Math.exp(-x));
-		} else if(x<0) {
-			return -Math.log(1.0 + Math.exp(x));
-		} else {
-			return Math.log(0.5);
-		}		
-	}
-	
+
+
 	
 	public static boolean isGoodPrediction(final double[] pred, final ExampleRow ei) {
 		double max = Double.NEGATIVE_INFINITY;
@@ -93,13 +64,70 @@ public class HelperFns {
 			}
 			double total = 0.0;
 			for(int i=0;i<n;++i) {
-				r[i] = Math.exp(r[i]-max);
-				total += r[i];
+				final double diff = r[i] - max;
+				final double vi;
+				if(diff<0.0) {
+					vi = Math.exp(diff);
+				} else {
+					vi = 1.0;
+				}
+				r[i] = vi;
+				total += vi;
 			}
 			final double scale = 1.0/total;
 			for(int i=0;i<n;++i) {
 				r[i] *= scale;
 			}
 		}
+	}
+	
+	/**
+	 * from: http://martin.ankerl.com/2007/02/11/optimized-exponential-functions-for-java/
+	 *  ÒA Fast, Compact Approximation of the Exponential FunctionÓ  Nicol N. Schraudolph 1998
+	 * @param x
+	 */
+	private static double exp(final double val) {
+		final long tmp = (long) (1512775 * val + 1072632447);
+		return Double.longBitsToDouble(tmp << 32);
+	}
+	
+	private static final double estExp0 = HelperFns.exp(0.0);
+	
+	
+	/**
+	 * can use- but approximation adds noise in gradient and such
+	 * @param r
+	 */
+	public static void expScaleFast(final double[] r) {
+		final int n = r.length;
+		if(n>0) {
+			double max = r[0];
+			for(int i=1;i<n;++i) {
+				max = Math.max(max,r[i]);
+			}
+			double total = 0.0;
+			for(int i=0;i<n;++i) {
+				final double diff = r[i] - max;
+				final double vi;
+				if(diff<0.0) {
+					vi = HelperFns.exp(diff);
+
+				} else {
+					vi = estExp0;
+				}
+				r[i] = vi;
+				total += vi;
+			}
+			final double scale = 1.0/total;
+			for(int i=0;i<n;++i) {
+				r[i] *= scale;
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		final double x = -0.3;
+		System.out.println("Math.exp(" + x + "): " + Math.exp(x));
+		System.out.println("HelperFns.exp(" + x + "): " + HelperFns.exp(x));
 	}
 }

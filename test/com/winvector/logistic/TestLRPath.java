@@ -143,7 +143,7 @@ public class TestLRPath {
 		System.out.println("soln vector: " + LinUtil.toString(opt.x));
 		System.out.println("soln details:\n" + adapter.formatSoln(opt.x));
 		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt.x);
-		assertTrue(Math.abs(trainAccuracy-0.9693)<1.0e-3);
+		assertTrue(Math.abs(trainAccuracy-0.9693)<1.0e-2);
 		confirmEffectCalc(trainSource,adapter,sigmoidLoss,opt.x);
 	}
 
@@ -171,7 +171,7 @@ public class TestLRPath {
 		resultFile.delete();
 		tmpDir.delete();
 		// test
-		assertTrue(Math.abs(accuracy-0.9693)<1.0e-3);
+		assertTrue(Math.abs(accuracy-0.9693)<1.0e-2);
 	}
 
 
