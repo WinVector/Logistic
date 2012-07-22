@@ -24,15 +24,15 @@ import com.winvector.db.DBUtil;
 import com.winvector.db.DBUtil.DBHandle;
 import com.winvector.db.LoadTable;
 import com.winvector.logistic.mr.TestRoundTrip;
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinUtil;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.DataFn;
+import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
@@ -89,7 +89,7 @@ public class TestLRPath {
 	 * @param x
 	 */
 	private <T extends ExampleRow> void confirmEffectCalc(final Iterable<BurstMap> trainSource, final VariableEncodings adapter, 
-			final LinearContribution<T> sigmoidLoss, final double[] x) {
+			final DModel<T> sigmoidLoss, final double[] x) {
 		// confirm effects work like we think
 		for(final BurstMap row: trainSource) {
 			// score the standard way
@@ -135,7 +135,7 @@ public class TestLRPath {
 		final PrimaVariableInfo def = LogisticTrain.buildVariableDefs(f,trainSource);
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,10);
@@ -225,7 +225,7 @@ public class TestLRPath {
 		query.append(tableName);
 		final Iterable<BurstMap> trainSource = new DBIterable(stmt,query.toString());
 		final Model model = (new LogisticTrain()).train(trainSource,f,null);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new ExampleRowIterable(model.config,trainSource),model.coefs);
 		assertTrue(trainAccuracy>0.968);
 		handle.conn.close();

@@ -23,11 +23,11 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.winvector.opt.def.DModel;
 import com.winvector.db.DBIterable;
 import com.winvector.db.DBUtil;
 import com.winvector.db.DBUtil.DBHandle;
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.util.BurstMap;
@@ -117,7 +117,7 @@ public class LogisticScore {
 	// can load into DB and get marinals with SQL like: select MODEL_CHOSEN_OUTCOME,RATING,COUNT(1) from scored1 group by MODEL_CHOSEN_OUTCOME,RATING
 	public static double score(final Model model, final Iterable<BurstMap> testSource, final File resultFile) throws FileNotFoundException, IOException, ClassNotFoundException {
 		final Log log = LogFactory.getLog(LogisticScore.class);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+		final DModel<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 		final PrintStream p = new PrintStream(new FileOutputStream(resultFile));
 		ArrayList<String> headerFlds = null;
 		long nToCompare = 0;

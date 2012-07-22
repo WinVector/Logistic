@@ -4,7 +4,6 @@ package com.winvector.logistic;
 import junit.framework.TestCase;
 
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.impl.DataFn;
@@ -69,7 +68,7 @@ public class TestLogM extends TestCase {
 		final RExample ex = new RExample(dat);
 		final Newton nwt = new Newton();
 		final double reg = 0.1;
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
 		final double[] x0 = new double[sl.dim()];
 		final VEval opt = nwt.maximize(sl,x0,10);

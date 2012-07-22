@@ -7,6 +7,7 @@ import java.util.Arrays;
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.impl.HelperFns;
 
@@ -18,7 +19,7 @@ import com.winvector.opt.impl.HelperFns;
  * @author johnmount
  *
  */
-public final class SigmoidLossMultinomial implements LinearContribution<ExampleRow> {
+public final class SigmoidLossMultinomial implements LinearContribution<ExampleRow>, DModel<ExampleRow> {
 	private static final long serialVersionUID = 1L;
 	
 	public final int vdim;

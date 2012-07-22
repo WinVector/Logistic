@@ -11,8 +11,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.winvector.logistic.SigmoidLossMultinomial;
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
@@ -186,7 +186,7 @@ public final class BTable {
 				stats.put(variable,new BStat(oldAdaptions.get(variable),oldAdapter.noutcomes()));
 			}
 		}
-		final LinearContribution<ExampleRow> sigmoidLoss;
+		final DModel<ExampleRow> sigmoidLoss;
 		if(oldX!=null) {
 			sigmoidLoss = new SigmoidLossMultinomial(oldAdapter.dim(),oldAdapter.noutcomes());
 		} else {

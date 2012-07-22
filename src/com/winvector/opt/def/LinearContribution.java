@@ -23,20 +23,4 @@ public interface LinearContribution<T extends ExampleRow> extends Serializable {
 	 * @param pscratch (dim noutcomes) scratch space
 	 */
 	void addTerm(double[] x, boolean wantGrad, boolean wantHessian, T d, VEval r, double[] pscratch);
-	
-	/**
-	 * 
-	 * @param x model coefficients (must have length dim())
-	 * @param ei data row
-	 * @param r where to write prediction results (must have length noutcomes())
-	 */
-	void predict(final double[] x, final Datum ei, final double[] r);
-	
-	/**
-	 * 
-	 * @param x model coefficients (must have length dim())
-	 * @param ei data row
-	 * @return predictions per category
-	 */
-	double[] predict(final double[] x, final Datum ei);
 }

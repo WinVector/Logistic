@@ -23,8 +23,8 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.impl.SparseExampleRow;
@@ -42,7 +42,7 @@ import com.winvector.variables.VariableEncodings;
 public final class MapRedFn implements VectorFn {
 	private final Log log = LogFactory.getLog(MapRedFn.class);
 	private static final String MRFIELDNAME = "MapRedFn.MRBlock";
-	private final LinearContribution<ExampleRow> underlying;
+	private final SigmoidLossMultinomial underlying;
 	private final WritableVariableList defs;
 	private final boolean useIntercept;
 	private final Configuration mrConfig;
@@ -50,7 +50,7 @@ public final class MapRedFn implements VectorFn {
 	private final String tmpPrefix;
 
 	
-	public MapRedFn(final LinearContribution<ExampleRow> underlying, final WritableVariableList defs, final boolean useIntercept, 
+	public MapRedFn(final SigmoidLossMultinomial underlying, final WritableVariableList defs, final boolean useIntercept, 
 			final String tmpPrefix, final Configuration mrConfig, final Path pathIn) {
 		this.underlying = underlying;
 		this.useIntercept = useIntercept;
@@ -66,7 +66,7 @@ public final class MapRedFn implements VectorFn {
 	}
 
 	public static final class JobStateDescr implements Writable {
-		public LinearContribution<ExampleRow> underlying = null;
+		public SigmoidLossMultinomial underlying = null;
 		public WritableVariableList defs = null;
 		public boolean useIntercept = true;
 		public String weightKey = null;
@@ -74,7 +74,6 @@ public final class MapRedFn implements VectorFn {
 		public boolean wantGrad = false;
 		public boolean wantHessian = false;
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public void readFields(final DataInput in) throws IOException {
 			underlying = null;
@@ -83,7 +82,7 @@ public final class MapRedFn implements VectorFn {
 			wantGrad = false;
 			wantHessian = false;
 			try {
-				underlying = (LinearContribution<ExampleRow>)SerialUtils.readSerialiazlabeFromString(in.readUTF());
+				underlying = (SigmoidLossMultinomial)SerialUtils.readSerialiazlabeFromString(in.readUTF());
 			} catch (ClassNotFoundException e) {
 				throw new IOException(e.toString());
 			}

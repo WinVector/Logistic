@@ -6,7 +6,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.LinearContribution;
+import com.winvector.opt.def.DModel;
 
 public class HelperFns {
 
@@ -24,7 +24,7 @@ public class HelperFns {
 	}
 	
 	
-	public static <T extends ExampleRow> double accuracy(final LinearContribution<T> fn, final Iterable<ExampleRow> as, final double[] x) {
+	public static <T extends ExampleRow> double accuracy(final DModel<T> fn, final Iterable<ExampleRow> as, final double[] x) {
 		int n = 0;
 		int nGood = 0;
 		final double[] pred = new double[fn.noutcomes()];

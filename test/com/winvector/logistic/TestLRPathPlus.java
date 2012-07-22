@@ -29,22 +29,16 @@ import com.winvector.db.DBIterable;
 import com.winvector.db.DBUtil;
 import com.winvector.db.DBUtil.DBHandle;
 import com.winvector.db.LoadTable;
-import com.winvector.logistic.Formula;
-import com.winvector.logistic.LogisticScore;
-import com.winvector.logistic.LogisticTrain;
-import com.winvector.logistic.LogisticTrainPlus;
-import com.winvector.logistic.Model;
-import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.logistic.mr.TestRoundTrip;
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinUtil;
-import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
 import com.winvector.opt.def.VectorOptimizer;
-import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.DataFn;
+import com.winvector.opt.impl.ExampleRowIterable;
 import com.winvector.opt.impl.GradientDescent;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
@@ -103,7 +97,7 @@ public class TestLRPathPlus {
 	 * @param x
 	 */
 	private void confirmEffectCalc(final Iterable<BurstMap> trainSource, final VariableEncodings adapter, 
-			final LinearContribution<ExampleRow> sigmoidLoss, final double[] x) {
+			final DModel<ExampleRow> sigmoidLoss, final double[] x) {
 		// confirm effects work like we think
 		for(final BurstMap row: trainSource) {
 			// score the standard way
@@ -149,7 +143,7 @@ public class TestLRPathPlus {
 		final PrimaVariableInfo def = LogisticTrainPlus.buildVariableDefs(f,trainSource);
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
@@ -172,7 +166,7 @@ public class TestLRPathPlus {
 			trainPlus.maxExplicitLevels = 2;
 			trainPlus.gradientPolish = gradientPolish;
 			final Model model = trainPlus.train(trainSource, f, null);
-			final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+			final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(model.config,trainSource);
 			final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,model.coefs);
 			assertTrue(trainAccuracy>0.95);
@@ -264,7 +258,7 @@ public class TestLRPathPlus {
 		}
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null,vectorEncodings,vectorEncodingNames);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1); 
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
@@ -327,7 +321,7 @@ public class TestLRPathPlus {
 				System.out.println("old adapter: " + vectorEncodings.oldAdapter);
 				System.out.println("new adapter: " + vectorEncodings.newAdapter);
 				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
-				final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
+				final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
 				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);  // should be lower like 1.0e-3 but 0.1 forces more passes
 				final VectorOptimizer nwt = new Newton();
 				final VEval newOpt = nwt.maximize(sl,vectorEncodings.warmStart,Integer.MAX_VALUE);
@@ -373,7 +367,7 @@ public class TestLRPathPlus {
 		{
 			final VectorOptimizer polisher = new GradientDescent();
 			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
-			final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
+			final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
 			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),1.0e-5);
 			final double newScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
 			assertTrue(relDiff(newtonDataPortion,newScore)<1.0e-3);
@@ -431,7 +425,7 @@ public class TestLRPathPlus {
 		query.append(tableName);
 		final Iterable<BurstMap> trainSource = new DBIterable(stmt,query.toString());
 		final Model model = (new LogisticTrainPlus()).train(trainSource,f,null);
-		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
+		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new ExampleRowIterable(model.config,trainSource),model.coefs);
 		assertTrue(trainAccuracy>0.965);
 		handle.conn.close();
