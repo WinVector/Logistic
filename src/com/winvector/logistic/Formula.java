@@ -13,6 +13,7 @@ public final class Formula implements Serializable {
 	public final SortedSet<String> variables = new TreeSet<String>();
 	public final SortedSet<String> forcedNumeric = new TreeSet<String>();
 	public final SortedSet<String> forcedCategorical = new TreeSet<String>();
+	public final boolean useIntercept;
 	
 	public Formula(final String f) throws ParseException {
 		this.f = f;
@@ -22,20 +23,25 @@ public final class Formula implements Serializable {
 		}
 		resultColumn = sides[0].trim();
 		final String[] terms = sides[1].split("\\+");
-		for(final String ti: terms) {
-			final int hashIndex = ti.indexOf('#');
-			final int caratIndex = ti.indexOf('^');
-			if((hashIndex>=0)&&(caratIndex>=0)) {
-				throw new ParseException("not a well formed formula (too many ^/#): '" + f + "'", 0);
+		boolean willUseIntercept = true;
+		for(final String termi: terms) {
+			final String ti = termi.trim();
+			if(ti.length()<=0) {
+				throw new ParseException("not a well-formed expression (doubled plus) '" + f + "'", 0);
 			}
-			if(hashIndex>=0) {
-				final String name = ti.substring(hashIndex+1).trim();
+			final char c0 = ti.charAt(0);
+			final boolean hasHash = c0=='#';
+			final boolean hasCarat = c0=='^';
+			if(ti.equals(0)) {
+				willUseIntercept = false;
+			} else if(hasHash) {
+				final String name = ti.substring(1).trim();
 				if(name.length()<=0) {
 					throw new ParseException("not a well formed formula (empty name): '" + f + "'", 0);
 				}
 				forcedNumeric.add(name);
-			} if(caratIndex>=0) {
-				final String name = ti.substring(caratIndex+1).trim();
+			} if(hasCarat) {
+				final String name = ti.substring(1).trim();
 				if(name.length()<=0) {
 					throw new ParseException("not a well formed formula (empty name): '" + f + "'", 0);
 				}
@@ -47,6 +53,7 @@ public final class Formula implements Serializable {
 				}
 			}
 		}
+		useIntercept = willUseIntercept;
 		variables.addAll(forcedCategorical);
 		variables.addAll(forcedNumeric);
 	}

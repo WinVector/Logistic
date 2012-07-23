@@ -65,10 +65,10 @@ public class LogisticTrain {
 		return def;
 	}
 	
-	public static VariableEncodings buildAdpater(final Formula f, final boolean useIntercept, final String weightKey,
+	public static VariableEncodings buildAdpater(final Formula f, final String weightKey,
 			final Iterable<BurstMap> source) {
 		final PrimaVariableInfo def = buildVariableDefs(f,source);
-		return new VariableEncodings(def,useIntercept,weightKey);
+		return new VariableEncodings(def,f.useIntercept,weightKey);
 	}
 
 	private static final String TRAINURIKEY = "trainURI";
@@ -89,7 +89,7 @@ public class LogisticTrain {
 		cloptions.addOption(TRAINSEP,true,"(optional) training data input separator");
 		cloptions.addOption(TRAINHDLKEY,true,"XML file to get JDBC connection to training data table");
 		cloptions.addOption(TRAINTBLKEY,true,"table to use from database for training data");
-		cloptions.addOption(MEMKEY, false, "if set data is held in memory during training");
+		cloptions.addOption(MEMKEY, false, "(optional) if set data is held in memory during training");
 		cloptions.addOption(FORMULAKEY,true,"formula to fit");
 		cloptions.addOption(WEIGHTKEY,true,"(optional) symbol to user for weights");
 		cloptions.addOption(RESULTSERKEY,true,"(optional) file to write seriazlized results to");
@@ -300,7 +300,7 @@ public class LogisticTrain {
 
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
 		final Log log = LogFactory.getLog(this.getClass());
-		final VariableEncodings adapter = buildAdpater(f,true,weightKey,trainSource);
+		final VariableEncodings adapter = buildAdpater(f,weightKey,trainSource);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
 		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);

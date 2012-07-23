@@ -29,7 +29,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 	public double newtonRegularization = 1.0e-3;
 	public double polishRegularization = 1.0e-5;
 	public boolean gradientPolish = false;
-	public boolean useIntercept = true;
+	public boolean useFastExp = true;
 
 	@Override
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
@@ -53,7 +53,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			}
 			log.info("re-encoding levels for " + varsToEncode.size() + " varaibles: " + encList);
 		}
-		final VariableEncodings standardEncodings = new VariableEncodings(def,useIntercept,weightKey);
+		final VariableEncodings standardEncodings = new VariableEncodings(def,f.useIntercept,weightKey);
 		final double[] newtonX;
 		{
 			double[] opt = null;
@@ -69,7 +69,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 				System.out.println("std dim: " + standardEncodings.dim() + ", adapter dim: " + vectorEncodings.newAdapter.dim());
 				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
 				final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
-				sigmoidLoss.useFastExp = true;
+				sigmoidLoss.useFastExp = useFastExp;
 				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),newtonRegularization);
 				final VectorOptimizer nwt = new Newton();
 				final VEval newOpt = nwt.maximize(sl,vectorEncodings.warmStart,Integer.MAX_VALUE);
@@ -94,7 +94,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			final VectorOptimizer polisher = new ConjugateGradientOptimizer();
 			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 			final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-			sigmoidLoss.useFastExp = true;
+			sigmoidLoss.useFastExp = useFastExp;
 			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),polishRegularization);
 			final VEval opt = polisher.maximize(sl,newtonX,5);
 			log.info("done gradient polish training\t" + new Date());
@@ -108,7 +108,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 			model.coefs = newtonX;
 		}
 		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-		sigmoidLoss.useFastExp = true;
+		sigmoidLoss.useFastExp = useFastExp;
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,model.coefs);
 		log.info("train accuracy:" + trainAccuracy);
