@@ -32,7 +32,7 @@ public final class Formula implements Serializable {
 			final char c0 = ti.charAt(0);
 			final boolean hasHash = c0=='#';
 			final boolean hasCarat = c0=='^';
-			if(ti.equals(0)) {
+			if(ti.equals("0")) {
 				willUseIntercept = false;
 			} else if(hasHash) {
 				final String name = ti.substring(1).trim();
