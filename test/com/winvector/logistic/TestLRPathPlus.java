@@ -161,7 +161,7 @@ public class TestLRPathPlus {
 		final Iterable<BurstMap> trainSource = TestLRPathPlus.readBurstFromResource("com/winvector/logistic/uciCarTrain.tsv");
 		final String formulaStr = "rating ~ buying + maintenance + doors + persons + lug_boot + safety";
 		final Formula f = new Formula(formulaStr);
-		for(final boolean gradientPolish: new boolean[] { true, false}) {
+		for(final boolean gradientPolish: new boolean[] { false, true}) {
 			final LogisticTrainPlus trainPlus = new LogisticTrainPlus();
 			trainPlus.maxExplicitLevels = 2;
 			trainPlus.gradientPolish = gradientPolish;

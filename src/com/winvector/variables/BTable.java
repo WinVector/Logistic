@@ -90,7 +90,7 @@ public final class BTable {
 			blevelRow.total += weight;
 			blevelRow.totalByCategory[category] += weight;
 			for(int i=0;i<noutcomes;++i) {
-				blevelRow.sumPCategory[category] += weight*pred[i];
+				blevelRow.sumPCategory[i] += weight*pred[i];
 			}
 			blevelRow.sumRunCategory[category] += weight*1.0/Math.max(pred[category],smallValue);
 			blevelRow.sumPCorrectCategory[category] += weight*pred[category];
@@ -129,7 +129,7 @@ public final class BTable {
 					final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
 					codev.add(superBalanceTerm);
 					coname.add("superBalance_" + outcome);
-					final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
+					final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
 					codev.add(balanceTerm);
 					coname.add("balance_" + outcome);
 					if(oldX!=null) {

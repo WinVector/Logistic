@@ -22,7 +22,8 @@ public final class Newton implements VectorOptimizer {
 	private final LinearSolver lSolver = new ConjugateGradientSolver();
 	private final double ridgeTerm = 1.0e-8;
 	private final double minGNormSQ = 1.0e-12;
-	private final double boxBound = 10.0; // TODO: set this
+	private final double boxBound = 200.0; // TODO: set this
+	private final boolean gradientPolish = false;
 	
 	
 	private double[] newX(final double[] oldX, final double[] delta, final double scale) {
@@ -111,13 +112,13 @@ public final class Newton implements VectorOptimizer {
 		if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
 			final VEval newEval = f.eval(nr.newX,wantGrad,wantHessian);
 			if(newEval.fx>lastRecord) {
-				if(newEval.fx>lastRecord+1.0e-3) {
-					goodStep = true;
-				}
+				goodStep = true;
 				bestEval[0] = newEval;
+			} else {
+				System.out.println("break");
 			}
 		}
-		if(!goodStep) {
+		if((!goodStep)&&(gradientPolish)) {
 			// try a gradient step on last best
 			final GradientDescent gd = new GradientDescent();
 			@SuppressWarnings("unused")
