@@ -38,7 +38,7 @@ public final class ConjugateGradientSolver implements LinearSolver {
 			inner:
 			while(true) {
 				final double oldrsq = LinUtil.dot(r,r);
-				if(Math.abs(oldrsq)<=0.0) {
+				if(Math.abs(oldrsq)<=1.0e-12) {
 					break outter;
 				}
 				LinUtil.mult(a,p,ap);

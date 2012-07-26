@@ -5,7 +5,6 @@ import junit.framework.TestCase;
 import com.winvector.opt.def.LinUtil;
 import com.winvector.opt.def.LinearSolver;
 import com.winvector.opt.impl.ConjugateGradientSolver;
-import com.winvector.opt.impl.SOR;
 
 
 
@@ -29,14 +28,6 @@ public class TestLinearSolver extends TestCase {
 		final double[] x = solver.solve(a, b);
 		checkSoln(a,b,x, 1.0e-6);
 
-	}
-	
-	public void testSORSolver() {
-		final double[][] a = new double[][] { {4, 1}, {1, 3} };
-		final double[] b = new double[] {1, 2};
-		final LinearSolver solver = new SOR();
-		final double[] x = solver.solve(a, b);
-		checkSoln(a,b,x, 1.0e-4);
 	}
 
 }
