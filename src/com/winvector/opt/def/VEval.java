@@ -27,8 +27,7 @@ public class VEval {
 			hx = null;
 		}
 		for(int i=0;i<dim;++i) {
-			final double vi = x[i];
-			this.x[i] = vi;
+			this.x[i] = x[i];
 		}
 	}
 	
@@ -46,6 +45,7 @@ public class VEval {
 	
 	/**
 	 * slow operation
+	 * assumes the two x's are the same
 	 * @param o
 	 */
 	public void add(final VEval o) {

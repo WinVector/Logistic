@@ -73,7 +73,7 @@ public final class LogisticTrainPlus extends LogisticTrain {
 				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),newtonRegularization);
 				final VectorOptimizer nwt = new Newton();
 				final VEval newOpt = nwt.maximize(sl,vectorEncodings.warmStart,Integer.MAX_VALUE);
-				if((null!=opt)&&(optfx+1.0e-3>=newOpt.fx)) {
+				if((null!=opt)&&(optfx+Math.max(1.0,optfx)*1.0e-3>=newOpt.fx)) {
 					break;
 				}
 				opt = newOpt.x;

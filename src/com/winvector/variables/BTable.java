@@ -202,6 +202,7 @@ public final class BTable {
 			final double pi = 1.0/(double)no;
 			Arrays.fill(pred,pi);			
 		}
+		// TODO: parallelize as with DataFn (abstract reducible data trackers)
 		for(final BurstMap row: trainSource) {
 			ticker.tick();
 			// score the standard way
