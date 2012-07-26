@@ -144,7 +144,7 @@ public class TestLRPathPlus {
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
 		System.out.println("done training\t" + new Date());
@@ -259,7 +259,7 @@ public class TestLRPathPlus {
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null,vectorEncodings,vectorEncodingNames);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1); 
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1); 
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
 		System.out.println("done training\t" + new Date());
@@ -297,7 +297,7 @@ public class TestLRPathPlus {
 				System.out.println("pass: " + pass);
 				if(opt!=null) {
 					final Map<String[],Double> decodeOld = vectorEncodings.newAdapter.decodeSolution(opt,true);
-					final double preScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
+					final double preScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
 					vectorEncodings = BTable.buildStatBasedEncodings(varsToEncode,trainSource,vectorEncodings.newAdapter,opt,rand);
 					System.out.println("warmstart vector: " + LinUtil.toString(vectorEncodings.warmStart));
 					System.out.println("warmstart details:\n" + vectorEncodings.newAdapter.formatSoln(vectorEncodings.warmStart));
@@ -312,7 +312,7 @@ public class TestLRPathPlus {
 						final double relDiff = relDiff(value,nv);
 						assertTrue(relDiff<1.0e-3);
 					}
-					final double postScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(vectorEncodings.warmStart,false,false).fx;
+					final double postScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(vectorEncodings.warmStart,false,false).fx;
 					System.out.println("preScore:  " + preScore);
 					System.out.println("postScore: " + postScore);
 					assertTrue(relDiff(preScore,postScore)<1.0e-3);
@@ -322,7 +322,7 @@ public class TestLRPathPlus {
 				System.out.println("new adapter: " + vectorEncodings.newAdapter);
 				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
 				final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
-				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),0.1);  // should be lower like 1.0e-3 but 0.1 forces more passes
+				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1);  // should be lower like 1.0e-3 but 0.1 forces more passes
 				final VectorOptimizer nwt = new Newton();
 				final VEval newOpt = nwt.maximize(sl,vectorEncodings.warmStart,Integer.MAX_VALUE);
 				if((null!=opt)&&(optfx+1.0e-3>=newOpt.fx)) {
@@ -339,8 +339,8 @@ public class TestLRPathPlus {
 			// decode x to standard basis
 			newtonX = vectorEncodings.translateTo(standardEncodings,opt);
 			// regularization term will be different as it depends directly on the variable encoding
-			final double oldScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
-			final double newScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
+			final double oldScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(opt,false,false).fx;
+			final double newScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
 			System.out.println("oldScore: " + oldScore);
 			System.out.println("newScore: " + newScore);
 			assertTrue(relDiff(oldScore,newScore)<1.0e-3);
@@ -368,8 +368,8 @@ public class TestLRPathPlus {
 			final VectorOptimizer polisher = new GradientDescent();
 			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 			final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow,ExampleRow>(sigmoidLoss,asTrain),1.0e-5);
-			final double newScore = (new DataFn<ExampleRow,ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
+			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),1.0e-5);
+			final double newScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
 			assertTrue(relDiff(newtonDataPortion,newScore)<1.0e-3);
 			final VEval opt = polisher.maximize(sl,newtonX,20);
 			System.out.println("done gradient polish training\t" + new Date());
