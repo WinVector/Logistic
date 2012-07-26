@@ -18,6 +18,7 @@ public final class GradientDescent implements VectorOptimizer {
 	private final Log log = LogFactory.getLog(GradientDescent.class);
 	private final double minGNormSQ = 1.0e-12;
 	private final double boxBound = 10000.0; // TODO: set this
+	private final double relImprovementTarget = 1.0e-3;
 	
 	public enum StepStatus {
 		goodGradientDescentStep,
@@ -74,7 +75,7 @@ public final class GradientDescent implements VectorOptimizer {
 			if(!StepStatus.goodGradientDescentStep.equals(ri)) {
 				break;
 			}
-			if(!(bestEval[0].fx>lastRecord+1.0e-3)) {
+			if(!(bestEval[0].fx>lastRecord+Math.max(1.0,Math.abs(lastRecord))*relImprovementTarget)) {
 				break;
 			}
 		}

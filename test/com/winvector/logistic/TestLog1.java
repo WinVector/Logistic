@@ -117,7 +117,7 @@ public class TestLog1 extends TestCase {
 			if(reg<=0.0) {
 				for(int i=0;i<rsoln.length;++i) {
 					final double javaSoln = -opt.x[i] + opt.x[i+rsoln.length];
-					assertTrue(Math.abs(rsoln[i]-javaSoln)<1.0e-2);
+					assertTrue(Math.abs(rsoln[i]-javaSoln)<1.0e-1);
 				}
 			}
 			//System.out.println("done: " + opt.x);

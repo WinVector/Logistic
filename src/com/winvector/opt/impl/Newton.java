@@ -24,7 +24,6 @@ public final class Newton implements VectorOptimizer {
 	private final double minGNormSQ = 1.0e-12;
 	private final double boxBound = 200.0; // TODO: set this
 	private final double relImprovementTarget = 1.0e-3;
-	private final boolean gradientPolish = false;
 	
 	
 	private double[] newX(final double[] oldX, final double[] delta, final double scale) {
@@ -115,15 +114,8 @@ public final class Newton implements VectorOptimizer {
 			final VEval newEval = f.eval(nr.newX,wantGrad,wantHessian);
 			if(newEval.fx>lastRecord) {
 				bestEval[0] = newEval;
-				if(newEval.fx>(lastRecord + Math.max(1.0,Math.abs(lastRecord))*relImprovementTarget)) {
-					goodStep = true;
-				}
+				goodStep = true;
 			}
-		}
-		if((!goodStep)&&(gradientPolish)) {
-			// try a gradient step on last best
-			final GradientDescent gd = new GradientDescent();
-			final com.winvector.opt.impl.GradientDescent.StepStatus status = gd.gradientPolish(f, bestEval[0], bestEval);
 		}
 		log.info("done Newton step: " + ((bestEval[0]!=null)?""+bestEval[0].fx:"")); 
 		return bestEval[0];
@@ -141,7 +133,7 @@ public final class Newton implements VectorOptimizer {
 			final VEval newEval = maximizeStep(f,bestEval[0].x,bestEval[0],true,true);
 			boolean goodStep = false;
 			if(newEval.fx>lastRecord) {
-				if(newEval.fx>lastRecord+1.0e-3) {
+				if(newEval.fx>lastRecord + Math.max(1.0,Math.abs(lastRecord))*relImprovementTarget) {
 					goodStep = true;
 				}
 				bestEval[0] = newEval;

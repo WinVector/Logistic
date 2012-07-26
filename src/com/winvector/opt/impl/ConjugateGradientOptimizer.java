@@ -17,6 +17,7 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 	private final double minMotionSq = 1.0e-14;
 	private final double minHNormSq = 1.0e-12;
 	private final double boxBound = 1.0e+10;
+	private final double relImprovementTarget = 1.0e-3;
 
 
 	private static String toString(final double[] x) {
@@ -174,6 +175,9 @@ public final class ConjugateGradientOptimizer implements VectorOptimizer {
 			}
 			if((null==best)||(cur.fx<best.fx)) {
 				best = cur;
+			}
+			if(!(cur.fx<roundStart.fx-Math.max(1.0,Math.abs(roundStart.fx))*relImprovementTarget)) {
+				break;
 			}
 			double msq = 0.0;
 			for(int i=0;i<n;++i) {
