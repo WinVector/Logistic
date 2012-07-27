@@ -26,10 +26,10 @@ import com.winvector.variables.VariableEncodings;
 
 public final class LogisticTrainPlus extends LogisticTrain {
 	public int maxExplicitLevels = 100;
-	public double newtonRegularization = 1.0e-3;
+	public double newtonRegularization = 1.0e-5;
 	public double polishRegularization = 1.0e-5;
 	public boolean gradientPolish = false;
-	public boolean useFastExp = true;
+	public boolean useFastExp = false; // looks like fast method introduce too much error in the function relative to the gradient
 
 	@Override
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {

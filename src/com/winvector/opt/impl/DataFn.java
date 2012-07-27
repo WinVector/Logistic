@@ -1,5 +1,7 @@
 package com.winvector.opt.impl;
 
+import org.apache.commons.logging.LogFactory;
+
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.def.LinearContribution;
 import com.winvector.opt.def.VEval;
@@ -53,7 +55,7 @@ public final class DataFn<T extends ExampleRow> implements VectorFn {
 
 	@Override
 	public VEval eval(final double[] x, final boolean wantGrad, final boolean wantHessian) {
-		final ThreadedReducer<T,ObsHolder> reducer = new ThreadedReducer<T,ObsHolder>(5);
+		final ThreadedReducer<T,ObsHolder> reducer = new ThreadedReducer<T,ObsHolder>(5,LogFactory.getLog(DataFn.class));
 		final ObsHolder base = new ObsHolder(x,wantGrad,wantHessian);
 		reducer.reduce(dat,base);
 		return base.r;

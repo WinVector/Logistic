@@ -4,9 +4,11 @@ package com.winvector.opt.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.Datum;
 import com.winvector.opt.def.ExampleRow;
-import com.winvector.opt.def.DModel;
+import com.winvector.util.ReducibleObserver;
+import com.winvector.util.ThreadedReducer;
 
 public class HelperFns {
 
@@ -23,25 +25,50 @@ public class HelperFns {
 		return good;
 	}
 	
-	
-	public static <T extends ExampleRow> double accuracy(final DModel<T> fn, final Iterable<ExampleRow> as, final double[] x) {
-		int n = 0;
-		int nGood = 0;
-		final double[] pred = new double[fn.noutcomes()];
-		for(final ExampleRow ei: as) {
-			fn.predict(x,ei,pred);
+	private static final class AccuracyCounter<T extends ExampleRow> implements ReducibleObserver<T,AccuracyCounter<T>> {
+		public long n = 0;
+		public long nGood = 0;
+		private final DModel<T> fn;
+		private final double[] x;
+		private final double[] pred;
+		
+		public AccuracyCounter(final DModel<T> fn, final double[] x) {
+			this.fn = fn;
+			this.x = x;
+			pred = new double[fn.noutcomes()];
+		}
+		
+		@Override
+		public void observe(final T ei) {
 			if(ei.category()>=0) {
+				fn.predict(x,ei,pred);
 				final boolean good = (pred!=null)&&isGoodPrediction(pred,ei);
 				if(good) {
 					++nGood;
 				}
 				++n;
 			}
-			//System.out.println(ei + " -> " + pred);
 		}
-		final double accuracy = nGood/(double)n; 
+
+		@Override
+		public void observe(final AccuracyCounter<T> o) {
+			n += o.n;
+			nGood += o.nGood;
+		}
+
+		@Override
+		public AccuracyCounter<T> newObserver() {
+			return new AccuracyCounter<T>(fn,x);
+		}
+	}
+	
+	public static <T extends ExampleRow> double accuracy(final DModel<T> fn, final Iterable<T> as, final double[] x) {
+		final AccuracyCounter<T> counter = new AccuracyCounter<T>(fn,x);
 		final Log log = LogFactory.getLog(fn.getClass());
-		log.info("accuarcy: " + nGood + "/" + n + " = " + accuracy);
+		final ThreadedReducer<T,AccuracyCounter<T>> reducer = new ThreadedReducer<T,AccuracyCounter<T>>(5,log);
+		reducer.reduce(as,counter);
+		final double accuracy = counter.nGood/(double)counter.n; 
+		log.info("accuarcy: " + counter.nGood + "/" + counter.n + " = " + accuracy);
 		return accuracy;
 	}
 	

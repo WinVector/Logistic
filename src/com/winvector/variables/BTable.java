@@ -21,10 +21,6 @@ import com.winvector.util.Ticker;
 
 /**
  * very low dimensional re-encoding of levels
- * better would be to add some training versions of variables (gives us a symbolic dynamics type idea)
- * and some other stats.
- * some variables to add are powerseries or indicators or ranges of other variables (gives optimizer more knobs).
- * the warm-start on last effect trick should be kept (lets us changing encodings a lot)
  * @author johnmount
  *
  */
@@ -194,7 +190,7 @@ public final class BTable {
 		}
 		// go through data to get stats
 		log.info("start variable re-encoding scan");
-		final Ticker ticker = new Ticker();
+		final Ticker ticker = new Ticker(LogFactory.getLog(BTable.class));
 		final ResevoirSampler<BurstMap> sampler = new ResevoirSampler<BurstMap>(100000,rand.nextLong());
 		final double[] pred = new double[oldAdapter.noutcomes()];
 		if(null==sigmoidLoss) {

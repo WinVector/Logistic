@@ -6,12 +6,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+
 
 public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
+	private final Log log;
 	private final int gulpSize = 1000;
 	private final int parallelism;
 	
-	public ThreadedReducer(final int parallelism) {
+	public ThreadedReducer(final int parallelism, final Log log) {
+		this.log = log;
 		this.parallelism = parallelism;
 	}
 	
@@ -43,7 +47,7 @@ public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
 
 	
 	public void reduce(final Iterable<? extends T> dat, final Z observer) {
-		final Ticker ticker = new Ticker();		
+		final Ticker ticker = new Ticker(log);		
 		if(parallelism>1) {
 			final BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(2*parallelism + 10);
 			final ThreadPoolExecutor executor = new ThreadPoolExecutor(parallelism,parallelism,1000L,TimeUnit.SECONDS,workQueue);

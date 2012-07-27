@@ -47,8 +47,9 @@ public class LogisticTrain {
 		final Log log = LogFactory.getLog(LogisticTrain.class);
 		final PrimaVariableInfo def = new PrimaVariableInfo();
 		def.readyForDefTracking(f);
+		// not going to parallelize this as it it is cheaper than scans that evaluate model probabilities.
 		log.info("start variable def scan 1/2");
-		final Ticker ticker = new Ticker();
+		final Ticker ticker = new Ticker(LogFactory.getLog(LogisticTrain.class));
 		for (BurstMap row : source) {
 			ticker.tick();
 			def.trackVariableDefsFromRow(row);

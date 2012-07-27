@@ -1,11 +1,10 @@
 package com.winvector.util;
 
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 
 public final class Ticker {
-	private final Log log = LogFactory.getLog(Ticker.class);
+	private final Log log;
 	private final long checkIntervalMillis = 200L;
 	private final long reportIntervalMillis = 60000L;
 	private long startTimeMillis;
@@ -13,7 +12,8 @@ public final class Ticker {
 	private long nextCheckTick;
 	private long nextReportTimeMillis;
 	
-	public Ticker() {
+	public Ticker(final Log log) {
+		this.log = log;
 		start();
 	}
 	
