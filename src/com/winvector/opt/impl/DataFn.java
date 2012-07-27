@@ -55,7 +55,7 @@ public final class DataFn<T extends ExampleRow> implements VectorFn {
 
 	@Override
 	public VEval eval(final double[] x, final boolean wantGrad, final boolean wantHessian) {
-		final ThreadedReducer<T,ObsHolder> reducer = new ThreadedReducer<T,ObsHolder>(5,LogFactory.getLog(DataFn.class));
+		final ThreadedReducer<T,ObsHolder,ObsHolder> reducer = new ThreadedReducer<T,ObsHolder,ObsHolder>(5,LogFactory.getLog(DataFn.class));
 		final ObsHolder base = new ObsHolder(x,wantGrad,wantHessian);
 		reducer.reduce(dat,base);
 		return base.r;

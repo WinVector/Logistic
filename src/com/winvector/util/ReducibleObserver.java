@@ -8,8 +8,7 @@ package com.winvector.util;
  *
  * @param <T>
  */
-public interface ReducibleObserver<T,Z extends ReducibleObserver<T,Z>> {
-	public void observe(final T t);
+public interface ReducibleObserver<T,Z extends ReducibleObserver<T,Z>> extends SerialObserver<T> {
 	public void observe(final Z o);
 	public Z newObserver();
 }

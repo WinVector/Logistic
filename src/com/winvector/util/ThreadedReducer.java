@@ -9,7 +9,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 
 
-public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
+/**
+ * 
+ * @author johnmount
+ *
+ * @param <T> type being observed
+ * @param <Z> type of observer that will work in parallel 
+ * @param <S> type of observer that will pre-scan serially
+ */
+public final class ThreadedReducer<T, S extends SerialObserver<T>, Z extends ReducibleObserver<T,Z>> {
 	private final Log log;
 	private final int gulpSize = 1000;
 	private final int parallelism;
@@ -46,7 +54,13 @@ public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
 	}
 
 	
-	public void reduce(final Iterable<? extends T> dat, final Z observer) {
+	/**
+	 * 
+	 * @param dat data source
+	 * @param serialObserver (option can be null) a cheap observer that will be applied to all data serially
+	 * @param parallelObserver an expensive observer that will be applied in parallel
+	 */
+	public void reduce(final Iterable<? extends T> dat, final S serialObserver, final Z parallelObserver) {
 		final Ticker ticker = new Ticker(log);		
 		if(parallelism>1) {
 			final BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(2*parallelism + 10);
@@ -54,18 +68,21 @@ public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
 			ArrayList<T> al = new ArrayList<T>(gulpSize);
 			for(final T di: dat) {
 				ticker.tick();
+				if(serialObserver!=null) {
+					serialObserver.observe(di);
+				}
 				al.add(di);
 				if(al.size()>=gulpSize) {
 					if((executor==null)||(executor.getTaskCount()-executor.getCompletedTaskCount()>parallelism)) {
-						new EJob(observer,al).run();
+						new EJob(parallelObserver,al).run();
 					} else {
-						executor.execute(new EJob(observer,al));
+						executor.execute(new EJob(parallelObserver,al));
 					}
 					al = new ArrayList<T>(gulpSize);
 				}
 			}
 			if(!al.isEmpty()) {
-				new EJob(observer,al).run();
+				new EJob(parallelObserver,al).run();
 			}
 			al = null;
 			executor.shutdown();
@@ -76,7 +93,21 @@ public final class ThreadedReducer<T,Z extends ReducibleObserver<T,Z>> {
 				}
 			}
 		} else {
-			new EJob(observer,dat).run();
+			for(final T di: dat) {
+				if(serialObserver!=null) {
+					serialObserver.observe(di);
+				}
+				parallelObserver.observe(di);
+			}
 		}
+	}
+	
+	/**
+	 * 
+	 * @param dat data source
+	 * @param parallelObserver an expensive observer that will be applied in parallel
+	 */
+	public void reduce(final Iterable<? extends T> dat, final Z parallelObserver) {
+		reduce(dat,null,parallelObserver);
 	}
 }
