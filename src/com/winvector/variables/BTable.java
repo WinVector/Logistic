@@ -1,5 +1,6 @@
 package com.winvector.variables;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -15,6 +16,7 @@ import com.winvector.util.BurstMap;
 import com.winvector.util.ResevoirSampler;
 import com.winvector.util.SerialObserver;
 import com.winvector.util.ThreadedReducer;
+import com.winvector.variables.BObserver.BLevelRow;
 import com.winvector.variables.BObserver.BRes;
 import com.winvector.variables.BObserver.BStat;
 
@@ -53,6 +55,78 @@ public final class BTable {
 		}
 	}
 
+	public static BRes encode(final BStat stat, final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
+		final double smooth = 0.5;
+		final BRes res = new BRes();
+		final double sumAll = stat.sumTotal + smooth; 
+		for(final String level: oldAdapter.def().catLevels.get(variable).keySet()) {
+			final ArrayList<Double> codev = new ArrayList<Double>(); 
+			final ArrayList<String> coname = new ArrayList<String>(); 
+			final Map<String,Integer> effectPositions = new HashMap<String,Integer>();
+			BLevelRow blevelRow = stat.levelStats.get(level);
+			if(null==blevelRow) {
+				blevelRow = stat.newRow();
+			}
+			final double sumLevel = blevelRow.total + smooth;
+			for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
+				final String outcome = me.getKey();
+				final int category = me.getValue();
+				final double sumOutcome = stat.totalByCategory[category] + smooth;
+				final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
+				final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
+				codev.add(bayesTerm);
+				coname.add("bayes_" + outcome);
+				codev.add(Math.log(bayesTerm));
+				coname.add("logbayes_" + outcome);
+				final double sumRun = blevelRow.sumRunCategory[category] + smooth;
+				final double runTerm = sumRun/sumLevel;
+				codev.add(runTerm);
+				coname.add("runTerm_" + outcome);
+				codev.add(Math.log(runTerm));
+				coname.add("logRunTerm_" + outcome);
+				final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
+				codev.add(superBalanceTerm);
+				coname.add("superBalance_" + outcome);
+				final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
+				codev.add(balanceTerm);
+				coname.add("balance_" + outcome);
+				final double superBalanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category]);
+				codev.add(superBalanceTermU);
+				coname.add("superBalanceU_" + outcome);
+				final double balanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
+				codev.add(balanceTermU);
+				coname.add("balanceU_" + outcome);
+				if(oldX!=null) {
+					final int base = category*oldAdapter.vdim;
+					final double cumulativeEffect = stat.oldAdaption.effect(base,oldX,level); // cumulative wisdom to date
+					effectPositions.put(outcome,codev.size()); // mark where cumulative effect term went  
+					codev.add(cumulativeEffect); 
+					coname.add("effect_" + outcome);
+				}
+			}
+			// finish encode
+			final int width = codev.size();
+			final double[] code = new double[width];
+			for(int i=0;i<width;++i) {
+				code[i] = codev.get(i);
+			}
+			res.codesByLevel.put(level,code);
+			if(!effectPositions.isEmpty()) {
+				for(final String outcome: oldAdapter.outcomeCategories.keySet()) {
+					final double[] warmStart = new double[width];
+					warmStart[effectPositions.get(outcome)] = 1.0;
+					res.warmStartByOutcome.put(outcome,warmStart);
+				}
+			}
+			final String[] names = new String[width];
+			for(int i=0;i<width;++i) {
+				names[i] = coname.get(i);
+			}
+			res.codesNamesByLevel.put(level,names);
+		}
+		return res;
+	}
+	
 	public static BTable buildStatBasedEncodings(final Set<String> varsToEncode,
 			final Iterable<BurstMap> trainSource, final VariableEncodings oldAdapter, 
 			final double[] oldX, final Random rand) {
@@ -79,7 +153,7 @@ public final class BTable {
 		for(final Map.Entry<String,BStat> me: bobs.stats.entrySet()) {
 			final String variable = me.getKey();
 			final BStat si = me.getValue();
-			final BRes newCodes = si.encode(variable,oldAdapter,oldX);
+			final BRes newCodes = encode(si,variable,oldAdapter,oldX);
 			res.levelEncodings.put(variable,newCodes.codesByLevel);
 			res.levelEncodingNames.put(variable,newCodes.codesNamesByLevel);
 			bData.put(variable,newCodes);

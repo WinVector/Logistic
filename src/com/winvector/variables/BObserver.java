@@ -1,6 +1,5 @@
 package com.winvector.variables;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,7 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 		public final Map<String,double[]> warmStartByOutcome = new HashMap<String,double[]>();
 	}
 	
-	private final class BLevelRow {
+	public final class BLevelRow {
 		public double total = 0.0;
 		public final double[] totalByCategory;
 		public final double[] sumRunCategory;
@@ -74,6 +73,10 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 		public BStat(final VariableMapping oldAdaption) {
 			this.oldAdaption = oldAdaption;
 			totalByCategory = new double[noutcomes];
+		}
+		
+		public BLevelRow newRow() {
+			return new BLevelRow();
 		}
 		
 		/**
@@ -116,72 +119,7 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 			}
 		}
 
-		public BRes encode(final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
-			final double smooth = 0.5;
-			final BRes res = new BRes();
-			final double sumAll = sumTotal + smooth; 
-			for(final String level: oldAdapter.def().catLevels.get(variable).keySet()) {
-				final ArrayList<Double> codev = new ArrayList<Double>(); 
-				final ArrayList<String> coname = new ArrayList<String>(); 
-				final Map<String,Integer> effectPositions = new HashMap<String,Integer>();
-				BLevelRow blevelRow = levelStats.get(level);
-				if(null==blevelRow) {
-					blevelRow = new BLevelRow();
-					levelStats.put(level,blevelRow);
-				}
-				final double sumLevel = blevelRow.total + smooth;
-				for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
-					final String outcome = me.getKey();
-					final int category = me.getValue();
-					final double sumOutcome = totalByCategory[category] + smooth;
-					final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
-					final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
-					codev.add(bayesTerm);
-					coname.add("bayes_" + outcome);
-					codev.add(Math.log(bayesTerm));
-					coname.add("logbayes_" + outcome);
-					final double sumRun = blevelRow.sumRunCategory[category] + smooth;
-					final double runTerm = sumRun/sumLevel;
-					codev.add(runTerm);
-					coname.add("runTerm_" + outcome);
-					codev.add(Math.log(runTerm));
-					coname.add("logRunTerm_" + outcome);
-					final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
-					codev.add(superBalanceTerm);
-					coname.add("superBalance_" + outcome);
-					final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
-					codev.add(balanceTerm);
-					coname.add("balance_" + outcome);
-					if(oldX!=null) {
-						final int base = category*oldAdapter.vdim;
-						final double cumulativeEffect = oldAdaption.effect(base,oldX,level); // cumulative wisdom to date
-						effectPositions.put(outcome,codev.size()); // mark where cumulative effect term went  
-						codev.add(cumulativeEffect); 
-						coname.add("effect_" + outcome);
-					}
-				}
-				// finish encode
-				final int width = codev.size();
-				final double[] code = new double[width];
-				for(int i=0;i<width;++i) {
-					code[i] = codev.get(i);
-				}
-				res.codesByLevel.put(level,code);
-				if(!effectPositions.isEmpty()) {
-					for(final String outcome: oldAdapter.outcomeCategories.keySet()) {
-						final double[] warmStart = new double[width];
-						warmStart[effectPositions.get(outcome)] = 1.0;
-						res.warmStartByOutcome.put(outcome,warmStart);
-					}
-				}
-				final String[] names = new String[width];
-				for(int i=0;i<width;++i) {
-					names[i] = coname.get(i);
-				}
-				res.codesNamesByLevel.put(level,names);
-			}
-			return res;
-		}
+
 	}
 	
 	// def
