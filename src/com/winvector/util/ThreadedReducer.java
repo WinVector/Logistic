@@ -6,8 +6,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-
 
 /**
  * 
@@ -18,13 +16,13 @@ import org.apache.commons.logging.Log;
  * @param <S> type of observer that will pre-scan serially
  */
 public final class ThreadedReducer<T, S extends SerialObserver<T>, Z extends ReducibleObserver<T,Z>> {
-	private final Log log;
+	private final String logString;
 	private final int gulpSize = 1000;
 	private final int parallelism;
 	
-	public ThreadedReducer(final int parallelism, final Log log) {
-		this.log = log;
+	public ThreadedReducer(final int parallelism, final String logString) {
 		this.parallelism = parallelism;
+		this.logString = logString;
 	}
 	
 	private final class EJob implements Runnable {
@@ -61,7 +59,7 @@ public final class ThreadedReducer<T, S extends SerialObserver<T>, Z extends Red
 	 * @param parallelObserver an expensive observer that will be applied in parallel
 	 */
 	public void reduce(final Iterable<? extends T> dat, final S serialObserver, final Z parallelObserver) {
-		final Ticker ticker = new Ticker(log);		
+		final Ticker ticker = new Ticker(logString);		
 		if(parallelism>1) {
 			final BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(2*parallelism + 10);
 			final ThreadPoolExecutor executor = new ThreadPoolExecutor(parallelism,parallelism,1000L,TimeUnit.SECONDS,workQueue);

@@ -141,7 +141,7 @@ public final class BTable {
 		log.info("start variable re-encoding scan");
 		final BSampler bsampler = new BSampler(oldAdapter,rand.nextLong());
 		final BObserver bobs = new BObserver(varsToEncode,oldAdapter,sigmoidLoss,oldX);
-		final ThreadedReducer<BurstMap,BSampler,BObserver> reducer = new ThreadedReducer<BurstMap,BSampler,BObserver>(5,log);
+		final ThreadedReducer<BurstMap,BSampler,BObserver> reducer = new ThreadedReducer<BurstMap,BSampler,BObserver>(5,"BTable encoding");
 		reducer.reduce(trainSource,bsampler,bobs);
 		log.info("done variable re-encoding scan");
 		final BTable res = new BTable();

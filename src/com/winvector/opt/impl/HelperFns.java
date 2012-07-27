@@ -65,7 +65,8 @@ public class HelperFns {
 	public static <T extends ExampleRow> double accuracy(final DModel<T> fn, final Iterable<T> as, final double[] x) {
 		final AccuracyCounter<T> counter = new AccuracyCounter<T>(fn,x);
 		final Log log = LogFactory.getLog(fn.getClass());
-		final ThreadedReducer<T,AccuracyCounter<T>,AccuracyCounter<T>> reducer = new ThreadedReducer<T,AccuracyCounter<T>,AccuracyCounter<T>>(5,log);
+		final String logString = fn.getClass().getName() + " accuracy scan";
+		final ThreadedReducer<T,AccuracyCounter<T>,AccuracyCounter<T>> reducer = new ThreadedReducer<T,AccuracyCounter<T>,AccuracyCounter<T>>(5,logString);
 		reducer.reduce(as,counter);
 		final double accuracy = counter.nGood/(double)counter.n; 
 		log.info("accuarcy: " + counter.nGood + "/" + counter.n + " = " + accuracy);
