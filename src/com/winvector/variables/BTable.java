@@ -1,6 +1,7 @@
 package com.winvector.variables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -17,8 +18,8 @@ import com.winvector.util.ResevoirSampler;
 import com.winvector.util.SerialObserver;
 import com.winvector.util.ThreadedReducer;
 import com.winvector.variables.BObserver.BLevelRow;
-import com.winvector.variables.BObserver.BRes;
 import com.winvector.variables.BObserver.BStat;
+import com.winvector.variables.LevelVectors.VectorRow;
 
 /**
  * very low dimensional re-encoding of levels
@@ -26,8 +27,6 @@ import com.winvector.variables.BObserver.BStat;
  *
  */
 public final class BTable {
-	public final Map<String,Map<String,double[]>> levelEncodings = new HashMap<String,Map<String,double[]>>();
-	public final Map<String,Map<String,String[]>> levelEncodingNames = new HashMap<String,Map<String,String[]>>();
 	public VariableEncodings oldAdapter;
 	public VariableEncodings newAdapter;
 	public double[] warmStart = null;
@@ -54,75 +53,103 @@ public final class BTable {
 			}
 		}
 	}
+	
+	
 
-	public static BRes encode(final BStat stat, final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
-		final double smooth = 0.5;
-		final BRes res = new BRes();
-		final double sumAll = stat.sumTotal + smooth; 
-		for(final String level: oldAdapter.def().catLevels.get(variable).keySet()) {
-			final ArrayList<Double> codev = new ArrayList<Double>(); 
-			final ArrayList<String> coname = new ArrayList<String>(); 
-			final Map<String,Integer> effectPositions = new HashMap<String,Integer>();
-			BLevelRow blevelRow = stat.levelStats.get(level);
-			if(null==blevelRow) {
-				blevelRow = stat.newRow();
+	private static final class GeneralIndicator {		
+		@SuppressWarnings("unused")
+		public final String var;
+		public final String name;
+		public final Map<String,Double> levelEncodings = new HashMap<String,Double>(); // indexed by levels of var
+		public final int warmStartOutcome;
+		
+		public GeneralIndicator(final String var, final String name, final int nlevels, final int warmStartOutcome) {
+			this.var = var;
+			this.name = name;
+			this.warmStartOutcome = warmStartOutcome;
+		}
+		
+		public double normSq() {
+			double nsq = 0.0;
+			for(final double v: levelEncodings.values()) {
+				nsq += v*v;
 			}
-			final double sumLevel = blevelRow.total + smooth;
-			for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
-				final String outcome = me.getKey();
-				final int category = me.getValue();
-				final double sumOutcome = stat.totalByCategory[category] + smooth;
-				final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
-				final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
-				codev.add(bayesTerm);
-				coname.add("bayes_" + outcome);
-				codev.add(Math.log(bayesTerm));
-				coname.add("logbayes_" + outcome);
-				final double sumRun = blevelRow.sumRunCategory[category] + smooth;
-				final double runTerm = sumRun/sumLevel;
-				codev.add(runTerm);
-				coname.add("runTerm_" + outcome);
-				codev.add(Math.log(runTerm));
-				coname.add("logRunTerm_" + outcome);
-				final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
-				codev.add(superBalanceTerm);
-				coname.add("superBalance_" + outcome);
-				final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
-				codev.add(balanceTerm);
-				coname.add("balance_" + outcome);
-				final double superBalanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category]);
-				codev.add(superBalanceTermU);
-				coname.add("superBalanceU_" + outcome);
-				final double balanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
-				codev.add(balanceTermU);
-				coname.add("balanceU_" + outcome);
+			return nsq;
+		}
+	}
+	
+
+	public static ArrayList<GeneralIndicator> encode(final BStat stat, final String variable, final VariableEncodings oldAdapter, final double[] oldX) {
+		final ArrayList<GeneralIndicator> res = new ArrayList<GeneralIndicator>();
+		final double smooth = 0.5;
+		final double sumAll = stat.sumTotal + smooth;
+		final Set<String> levels = oldAdapter.def().catLevels.get(variable).keySet();
+		final int nlevels = levels.size();
+		for(final Map.Entry<String,Integer> me: oldAdapter.outcomeCategories.entrySet()) {
+			final String outcome = me.getKey();
+			final int category = me.getValue();
+			final double sumOutcome = stat.totalByCategory[category] + smooth;
+			final GeneralIndicator bayesI = new GeneralIndicator(variable,"bayes_" + outcome,nlevels,-1);
+			final GeneralIndicator logBayesI = new GeneralIndicator(variable,"logbayes_" + outcome,nlevels,-1);
+			final GeneralIndicator runI= new GeneralIndicator(variable,"runTerm_" + outcome,nlevels,-1);
+			final GeneralIndicator logRunI = new GeneralIndicator(variable,"logRunTerm_" + outcome,nlevels,-1);
+			final GeneralIndicator balanceI = new GeneralIndicator(variable,"balance_" + outcome,nlevels,-1);
+			final GeneralIndicator superBalanceI = new GeneralIndicator(variable,"superBalance_" + outcome,nlevels,-1);
+			final GeneralIndicator balanceIU = new GeneralIndicator(variable,"balanceU_" + outcome,nlevels,-1);
+			final GeneralIndicator superBalanceIU = new GeneralIndicator(variable,"superBalanceU_" + outcome,nlevels,-1);
+			final GeneralIndicator effectI;
+			if(oldX!=null) {
+				effectI = new GeneralIndicator(variable,"effectTerm_" + outcome,nlevels,category);
+			} else {
+				effectI = null;
+			}
+			for(final String level: levels) {
+				final BLevelRow blevelRow = stat.levelStats.get(level);
+				if(blevelRow!=null) {
+					final double sumLevel = blevelRow.total + smooth;
+					{
+						final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
+						final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
+						bayesI.levelEncodings.put(level,bayesTerm);
+						logBayesI.levelEncodings.put(level,Math.log(bayesTerm));
+					}
+					{
+						final double sumRun = blevelRow.sumRunCategory[category] + smooth;
+						final double runTerm = sumRun/sumLevel;
+						runI.levelEncodings.put(level,runTerm);
+						logRunI.levelEncodings.put(level,Math.log(runTerm));
+					}
+					{// TODO: investigate if this term is actually varying per target category
+						final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
+						superBalanceI.levelEncodings.put(level,superBalanceTerm);
+					}// TODO: investigate if this term is actually varying per target category
+					{ 
+						final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
+						balanceI.levelEncodings.put(level,balanceTerm);
+					}
+					{
+						final double superBalanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category]);
+						superBalanceIU.levelEncodings.put(level,superBalanceTermU);
+					}
+					{
+						final double balanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
+						balanceIU.levelEncodings.put(level,balanceTermU);
+					}
+				}
 				if(oldX!=null) {
 					final int base = category*oldAdapter.vdim;
 					final double cumulativeEffect = stat.oldAdaption.effect(base,oldX,level); // cumulative wisdom to date
-					effectPositions.put(outcome,codev.size()); // mark where cumulative effect term went  
-					codev.add(cumulativeEffect); 
-					coname.add("effect_" + outcome);
+					effectI.levelEncodings.put(level,cumulativeEffect);
 				}
 			}
 			// finish encode
-			final int width = codev.size();
-			final double[] code = new double[width];
-			for(int i=0;i<width;++i) {
-				code[i] = codev.get(i);
-			}
-			res.codesByLevel.put(level,code);
-			if(!effectPositions.isEmpty()) {
-				for(final String outcome: oldAdapter.outcomeCategories.keySet()) {
-					final double[] warmStart = new double[width];
-					warmStart[effectPositions.get(outcome)] = 1.0;
-					res.warmStartByOutcome.put(outcome,warmStart);
+			for( final GeneralIndicator indI : new GeneralIndicator[] { bayesI, logBayesI, runI, logRunI, 
+					balanceI, superBalanceI, balanceIU, effectI }) {
+				if((null!=indI)&&(indI.normSq()>1.0e-5)) {
+					// TODO: could also normalize here
+					res.add(indI);
 				}
 			}
-			final String[] names = new String[width];
-			for(int i=0;i<width;++i) {
-				names[i] = coname.get(i);
-			}
-			res.codesNamesByLevel.put(level,names);
 		}
 		return res;
 	}
@@ -148,18 +175,40 @@ public final class BTable {
 		res.sample = bsampler.sampler.data();
 		log.info("start new adapter construction");
 		// convert stats into encodings
-		final Map<String,BRes> bData = new HashMap<String,BRes>();
 		res.oldAdapter = oldAdapter;
+		final Map<String,Map<String,VectorRow>> levelEncodings = new HashMap<String,Map<String,VectorRow>>(); // variable to level to vector
 		for(final Map.Entry<String,BStat> me: bobs.stats.entrySet()) {
 			final String variable = me.getKey();
 			final BStat si = me.getValue();
-			final BRes newCodes = encode(si,variable,oldAdapter,oldX);
-			res.levelEncodings.put(variable,newCodes.codesByLevel);
-			res.levelEncodingNames.put(variable,newCodes.codesNamesByLevel);
-			bData.put(variable,newCodes);
+			final ArrayList<GeneralIndicator> newCodes = encode(si,variable,oldAdapter,oldX);
+			if((null!=newCodes)&&(newCodes.size()>0)) {
+				final int edim = newCodes.size();
+				final Map<String,VectorRow> enc = new HashMap<String,VectorRow>();  // level to vector
+				final String[] names = new String[edim];
+				{
+					int giIndex = 0;
+					for(final GeneralIndicator gi: newCodes) {
+						names[giIndex] = gi.name;
+						++giIndex;
+					}
+				}
+				for(final String level: si.levelStats.keySet()) {
+					final VectorRow row = new VectorRow(names,new double[edim],new int[edim]);
+					Arrays.fill(row.warmStartOutcome,-1);
+					enc.put(level,row);
+					int giIndex = 0;
+					for(final GeneralIndicator gi: newCodes) {
+						final Double lv = gi.levelEncodings.get(level);
+						row.levelEncodings[giIndex] = lv!=null?lv:0.0;
+						row.warmStartOutcome[giIndex] = gi.warmStartOutcome;  // warm start assignment (not value) independent of level
+						++giIndex;
+					}
+				}
+				levelEncodings.put(variable,enc);
+			}
 		}
 		// build new adapter
-		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),oldAdapter.weightKey,res.levelEncodings,res.levelEncodingNames);
+		res.newAdapter = new VariableEncodings(oldAdapter.def(),oldAdapter.useIntercept(),oldAdapter.weightKey,levelEncodings);
 		// build warmstart vector
 		if(oldX!=null) {
 			final Map<String,VariableMapping> newAdaptions = new HashMap<String,VariableMapping>();
@@ -168,18 +217,20 @@ public final class BTable {
 			}
 			res.warmStart = new double[res.newAdapter.dim()*res.newAdapter.noutcomes()];
 			for(final Map.Entry<String,Integer> mc: oldAdapter.outcomeCategories.entrySet()) {
-				final String outcome = mc.getKey();
+				//final String outcome = mc.getKey();
 				final int cati = mc.getValue();
 				final int baseOld = cati*oldAdapter.vdim;
 				final int baseNew = cati*res.newAdapter.vdim;
 				for(final VariableMapping oldAdaption: oldAdapter.adaptions) {
 					final String variable = oldAdaption.origColumn();
 					final VariableMapping newAdaption = newAdaptions.get(variable);
-					if(res.levelEncodings.containsKey(variable)) {
-						final BRes newCodes = bData.get(variable);
-						final double[] warmStart = newCodes.warmStartByOutcome.get(outcome);
-						for(int i=newAdaption.indexL();i<newAdaption.indexR();++i) {
-							res.warmStart[baseNew+i] = warmStart[i-newAdaption.indexL()];
+					if(levelEncodings.containsKey(variable)) {
+						final Map<String, VectorRow> newCodes = levelEncodings.get(variable);
+						if((null!=newCodes)&&(!newCodes.isEmpty())) {
+							final VectorRow warmStart = newCodes.values().iterator().next(); // warm start assignment (not value) independent of level
+							for(int i=newAdaption.indexL();i<newAdaption.indexR();++i) {
+								res.warmStart[baseNew+i] = warmStart.warmStartOutcome[i-newAdaption.indexL()]==cati?1.0:0.0;
+							}
 						}
 					} else {
 						for(int i=newAdaption.indexL();i<newAdaption.indexR();++i) {

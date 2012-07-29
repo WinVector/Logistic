@@ -18,10 +18,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.junit.Test;
 
@@ -46,7 +44,6 @@ import com.winvector.opt.impl.NormPenalty;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
-import com.winvector.util.CountMap;
 import com.winvector.util.TrivialReader;
 import com.winvector.util.TrivialReader.TrivialIterator;
 import com.winvector.variables.BTable;
@@ -198,77 +195,7 @@ public class TestLRPathPlus {
 		assertTrue(Math.abs(accuracy-0.9693)<1.0e-2);
 	}
 
-	/**
-	 * generate a unit vector uniformly at random
-	 * NOT an effective encoding as under the random projection good and bad levels tend to be intermixed
-	 * and inseparable.  Just here to exercise non-identity encoding code path without the pain of adaption.
-	 * @param rand
-	 * @return
-	 */
-	private static double[] randVec(final int targetDim, final Random rand) {
-		final double[] v = new double[targetDim];
-		while(true) {
-			double normSq = 0.0;
-			for(int i=0;i<targetDim;++i) {
-				v[i] = rand.nextGaussian();
-				normSq += v[i]*v[i];
-			}
-			if(normSq>1.0e-2) {
-				final double scale = 1.0/Math.sqrt(normSq);
-				for(int i=0;i<targetDim;++i) {
-					v[i] *= scale;
-				}
-				return v;
-			}
-		}
-	}
 	
-	
-	/**
-	 * not a good encoding- just testing data path witout needing updates
-	 * @throws Exception
-	 */
-	@Test
-	public void testRandVectorEncoding() throws Exception {
-		final Iterable<BurstMap> trainSource = TestLRPathPlus.readBurstFromResource("com/winvector/logistic/uciCarTrain.tsv");
-		final String formulaStr = "rating ~ buying + maintenance + doors + persons + lug_boot + safety";
-		final Formula f = new Formula(formulaStr);
-		final boolean useIntercept = true;
-		final int targetDim = 4;
-		final Random rand = new Random(23251);
-		final PrimaVariableInfo def = LogisticTrainPlus.buildVariableDefs(f,trainSource);
-		final Map<String,Map<String,double[]>> vectorEncodings = new TreeMap<String,Map<String,double[]>>();
-		final Map<String,Map<String,String[]>> vectorEncodingNames = new TreeMap<String,Map<String,String[]>>();
-		int rc = 0;
-		for(final Entry<String, CountMap<String>> me: def.catLevels.entrySet()) {
-			final String variable = me.getKey();
-			final Map<String, double[]> codes = new TreeMap<String,double[]>();
-			final Map<String, String[]> names = new TreeMap<String,String[]>();
-			for(final String level: me.getValue().keySet()) {
-				codes.put(level,randVec(targetDim,rand));
-				final String[] nameV = new String[targetDim];
-				for(int i=0;i<nameV.length;++i) {
-					nameV[i] = "rand_" + rc + "_" + i;
-				}
-				++rc;
-				names.put(level,nameV);
-			}
-			vectorEncodings.put(variable,codes);
-			vectorEncodingNames.put(variable,names);
-		}
-		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null,vectorEncodings,vectorEncodingNames);
-		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
-		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1); 
-		final VectorOptimizer nwt = new Newton();
-		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
-		System.out.println("done training\t" + new Date());
-		System.out.println("soln vector: " + LinUtil.toString(opt.x));
-		System.out.println("soln details:\n" + adapter.formatSoln(opt.x));
-		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt.x);
-		assertTrue(Math.abs(trainAccuracy-0.9693)<1.0e-2);
-		confirmEffectCalc(trainSource,adapter,sigmoidLoss,opt.x);
-	}
 	
 	@Test
 	public void testVectorEncodingB() throws Exception {
@@ -310,6 +237,9 @@ public class TestLRPathPlus {
 						final Double nv = decodeNew.get(key);
 						assertNotNull(nv);
 						final double relDiff = relDiff(value,nv);
+						if(relDiff>=1.0e-3) {
+							System.out.println("break");
+						}
 						assertTrue(relDiff<1.0e-3);
 					}
 					final double postScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes()),new ExampleRowIterable(vectorEncodings.newAdapter,trainSource))).eval(vectorEncodings.warmStart,false,false).fx;

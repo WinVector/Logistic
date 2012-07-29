@@ -29,13 +29,7 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 			x[i] += delta[i];
 		}
 	}
-	
-	public static final class BRes {
-		public final Map<String,double[]> codesByLevel = new HashMap<String,double[]>();
-		public final Map<String,String[]> codesNamesByLevel = new HashMap<String,String[]>();
-		public final Map<String,double[]> warmStartByOutcome = new HashMap<String,double[]>();
-	}
-	
+		
 	public final class BLevelRow {
 		public double total = 0.0;
 		public final double[] totalByCategory;

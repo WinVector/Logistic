@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.CountMap;
+import com.winvector.variables.LevelVectors.VectorRow;
 
 public final class VariableEncodings implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -30,7 +31,7 @@ public final class VariableEncodings implements Serializable {
 	private final double[] vtmp;
 	
 	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey,
-			final Map<String,Map<String,double[]>> vectorEncodings, final Map<String,Map<String,String[]>> vectorEncodingNames) {
+			final Map<String,Map<String,VectorRow>> vectorEncodings) {
 		this.def = def;
 		this.useIntercept = useIntercept;
 		this.weightKey = weightKey;
@@ -50,7 +51,7 @@ public final class VariableEncodings implements Serializable {
 		for(final String ci: new TreeSet<String>(def.catLevels.keySet())) {
 			final VariableMapping adaption;
 			if((vectorEncodings!=null)&&(vectorEncodings.containsKey(ci))) {
-				adaption = new LevelVectors(ci,adapterDim,vectorEncodings.get(ci),vectorEncodingNames.get(ci));
+				adaption = new LevelVectors(ci,adapterDim,vectorEncodings.get(ci));
 			} else {
 				final CountMap<String> levels = def.catLevels.get(ci);
 				adaption = new LevelIndicators(ci,adapterDim,levels.keySet());
@@ -68,7 +69,7 @@ public final class VariableEncodings implements Serializable {
 	}
 
 	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey) {
-		this(def,useIntercept,weightKey,null,null);
+		this(def,useIntercept,weightKey,null);
 	}
 	
 	public PrimaVariableInfo def() {
