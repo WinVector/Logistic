@@ -119,10 +119,10 @@ public final class BTable {
 						runI.levelEncodings.put(level,runTerm);
 						logRunI.levelEncodings.put(level,Math.log(runTerm));
 					}
-					{// TODO: investigate if this term is actually varying per target category
+					{
 						final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
 						superBalanceI.levelEncodings.put(level,superBalanceTerm);
-					}// TODO: investigate if this term is actually varying per target category
+					}
 					{ 
 						final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
 						balanceI.levelEncodings.put(level,balanceTerm);
