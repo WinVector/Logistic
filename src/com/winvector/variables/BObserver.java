@@ -31,25 +31,28 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 	}
 		
 	public final class BLevelRow {
-		public double total = 0.0;
-		public final double[] totalByCategory;
-		public final double[] sumRunCategory;
+		public double totalForLevel = 0.0;
+		public final double[] totalByCorrectCategory;
+		public final double[] sumRunCorrectCategory;
+		public final double[] sumRunFixedCategory;
 		public final double[] sumPCorrectCategory;
-		public final double[] sumPCategory;
+		public final double[] sumPFixedCategory;
 		
 		public BLevelRow() {
-			totalByCategory = new double[noutcomes];
-			sumRunCategory = new double[noutcomes];
+			totalByCorrectCategory = new double[noutcomes];
+			sumRunCorrectCategory = new double[noutcomes];
+			sumRunFixedCategory = new double[noutcomes];
 			sumPCorrectCategory = new double[noutcomes];
-			sumPCategory = new double[noutcomes];
+			sumPFixedCategory = new double[noutcomes];
 		}
 
 		public void observe(final BLevelRow o) {
-			total += o.total;
-			sumLeft(totalByCategory,o.totalByCategory);
-			sumLeft(sumRunCategory,o.sumRunCategory);
+			totalForLevel += o.totalForLevel;
+			sumLeft(totalByCorrectCategory,o.totalByCorrectCategory);
+			sumLeft(sumRunCorrectCategory,o.sumRunCorrectCategory);
+			sumLeft(sumRunFixedCategory,o.sumRunFixedCategory);
 			sumLeft(sumPCorrectCategory,o.sumPCorrectCategory);
-			sumLeft(sumPCategory,o.sumPCategory);
+			sumLeft(sumPFixedCategory,o.sumPFixedCategory);
 		}
 	}
 	
@@ -89,12 +92,17 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 				blevelRow = new BLevelRow();
 				levelStats.put(level,blevelRow);
 			}
-			blevelRow.total += weight;
-			blevelRow.totalByCategory[category] += weight;
+			blevelRow.totalForLevel += weight;
+			blevelRow.totalByCorrectCategory[category] += weight;
 			for(int i=0;i<noutcomes;++i) {
-				blevelRow.sumPCategory[i] += weight*pred[i];
+				blevelRow.sumPFixedCategory[i] += weight*pred[i];
+				if(category==i) {
+					blevelRow.sumRunFixedCategory[i] += weight*1.0/Math.max(pred[i],smallValue);
+				} else {
+					blevelRow.sumRunFixedCategory[i] += weight*-1.0/Math.max(1.0-pred[i],smallValue);
+				}
 			}
-			blevelRow.sumRunCategory[category] += weight*1.0/Math.max(pred[category],smallValue);
+			blevelRow.sumRunCorrectCategory[category] += weight*1.0/Math.max(pred[category],smallValue);
 			blevelRow.sumPCorrectCategory[category] += weight*pred[category];
 		}
 

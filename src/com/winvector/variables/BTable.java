@@ -93,8 +93,14 @@ public final class BTable {
 			final GeneralIndicator logBayesI = new GeneralIndicator(variable,"logbayes_" + outcome,nlevels,-1);
 			final GeneralIndicator runI= new GeneralIndicator(variable,"runTerm_" + outcome,nlevels,-1);
 			final GeneralIndicator logRunI = new GeneralIndicator(variable,"logRunTerm_" + outcome,nlevels,-1);
+			final GeneralIndicator runFI= new GeneralIndicator(variable,"runTermF_" + outcome,nlevels,-1);
+			final GeneralIndicator logRunFI = new GeneralIndicator(variable,"logRunTermF_" + outcome,nlevels,-1);
 			final GeneralIndicator balanceI = new GeneralIndicator(variable,"balance_" + outcome,nlevels,-1);
+			final GeneralIndicator balanceR = new GeneralIndicator(variable,"balanceR_" + outcome,nlevels,-1);
+			final GeneralIndicator balanceLR = new GeneralIndicator(variable,"balanceLR_" + outcome,nlevels,-1);
 			final GeneralIndicator superBalanceI = new GeneralIndicator(variable,"superBalance_" + outcome,nlevels,-1);
+			final GeneralIndicator superBalanceR = new GeneralIndicator(variable,"superBalanceR_" + outcome,nlevels,-1);
+			final GeneralIndicator superBalanceLR = new GeneralIndicator(variable,"superBalanceLR_" + outcome,nlevels,-1);
 			final GeneralIndicator balanceIU = new GeneralIndicator(variable,"balanceU_" + outcome,nlevels,-1);
 			final GeneralIndicator superBalanceIU = new GeneralIndicator(variable,"superBalanceU_" + outcome,nlevels,-1);
 			final GeneralIndicator effectI;
@@ -106,34 +112,38 @@ public final class BTable {
 			for(final String level: levels) {
 				final BLevelRow blevelRow = stat.levelStats.get(level);
 				if(blevelRow!=null) {
-					final double sumLevel = blevelRow.total + smooth;
+					final double sumLevel = blevelRow.totalForLevel + smooth;
 					{
-						final double sumLevelOutcome = blevelRow.totalByCategory[category] + smooth;
+						final double sumLevelOutcome = blevelRow.totalByCorrectCategory[category] + smooth;
 						final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
 						bayesI.levelEncodings.put(level,bayesTerm);
 						logBayesI.levelEncodings.put(level,Math.log(bayesTerm));
 					}
 					{
-						final double sumRun = blevelRow.sumRunCategory[category] + smooth;
-						final double runTerm = sumRun/sumLevel;
+						final double runTerm = (blevelRow.sumRunCorrectCategory[category]+smooth)/(blevelRow.totalByCorrectCategory[category]+smooth);
 						runI.levelEncodings.put(level,runTerm);
 						logRunI.levelEncodings.put(level,Math.log(runTerm));
+						final double runTermF = (blevelRow.sumRunFixedCategory[category]+smooth)/(blevelRow.totalForLevel+smooth);
+						runFI.levelEncodings.put(level,runTermF);
+						logRunFI.levelEncodings.put(level,Math.log(runTermF));
 					}
 					{
-						final double superBalanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
-						superBalanceI.levelEncodings.put(level,superBalanceTerm);
-					}
-					{ 
-						final double balanceTerm = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category])/sumLevel;
+						final double balanceTerm = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPFixedCategory[category])/sumLevel;
 						balanceI.levelEncodings.put(level,balanceTerm);
-					}
-					{
-						final double superBalanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCorrectCategory[category]);
-						superBalanceIU.levelEncodings.put(level,superBalanceTermU);
-					}
-					{
-						final double balanceTermU = (blevelRow.totalByCategory[category] - blevelRow.sumPCategory[category]);
+						final double balanceTermU = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPFixedCategory[category]);
 						balanceIU.levelEncodings.put(level,balanceTermU);
+						final double balanceRTerm = (blevelRow.totalByCorrectCategory[category]+smooth)/(blevelRow.sumPFixedCategory[category]+smooth);
+						balanceR.levelEncodings.put(level,balanceRTerm);
+						balanceLR.levelEncodings.put(level,Math.log(balanceRTerm));
+					}
+					{
+						final double superBalanceTerm = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
+						superBalanceI.levelEncodings.put(level,superBalanceTerm);
+						final double superBalanceTermU = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPCorrectCategory[category]);
+						superBalanceIU.levelEncodings.put(level,superBalanceTermU);
+						final double superBalanceRTerm = (blevelRow.totalByCorrectCategory[category]+smooth)/(blevelRow.sumPCorrectCategory[category]+smooth);
+						superBalanceR.levelEncodings.put(level,superBalanceRTerm);
+						superBalanceLR.levelEncodings.put(level,Math.log(superBalanceRTerm));
 					}
 				}
 				if(oldX!=null) {
@@ -143,8 +153,11 @@ public final class BTable {
 				}
 			}
 			// finish encode
-			for( final GeneralIndicator indI : new GeneralIndicator[] { bayesI, logBayesI, runI, logRunI, 
-					balanceI, superBalanceI, balanceIU, effectI }) {
+			for( final GeneralIndicator indI : new GeneralIndicator[] { bayesI, logBayesI, 
+					runI, logRunI, runFI, logRunFI, 
+					balanceI, balanceIU, balanceR, balanceLR,
+					superBalanceI, superBalanceIU, superBalanceR, superBalanceLR, 
+					effectI }) {
 				if((null!=indI)&&(indI.normSq()>1.0e-5)) {
 					// TODO: could also normalize here
 					res.add(indI);
