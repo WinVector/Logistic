@@ -20,10 +20,10 @@ import com.winvector.opt.def.VectorOptimizer;
 public final class Newton implements VectorOptimizer {
 	private final Log log = LogFactory.getLog(Newton.class);
 	private final LinearSolver lSolver = new ConjugateGradientSolver();
-	private final double ridgeTerm = 1.0e-8;
+	private final double ridgeTerm = 1.0e-5;
 	private final double minGNormSQ = 1.0e-12;
-	private final double boxBound = 200.0; // TODO: set this
-	private final double relImprovementTarget = 1.0e-3;
+	private final double boxBound = 2000.0; // TODO: set this
+	private final double relImprovementTarget = 1.0e-4;
 	
 	
 	private double[] newX(final double[] oldX, final double[] delta, final double scale) {

@@ -6,7 +6,7 @@ import com.winvector.opt.def.LinearSolver;
 
 
 public final class ConjugateGradientSolver implements LinearSolver {
-	public double movRelAbsTol = 1.0e-3;
+	public double movRelAbsTol = 1.0e-8;
 	
 	private static double add(final double r, final double[] a, final double s, final double[] b) {
 		final int dim = a.length;

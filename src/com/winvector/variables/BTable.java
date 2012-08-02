@@ -68,23 +68,7 @@ public final class BTable {
 			this.name = name;
 			this.warmStartOutcome = warmStartOutcome;
 		}
-		
-		public void removeMean() {
-			double tot = 0.0;
-			long n = 0;
-			for(final double v: levelEncodings.values()) {
-				tot += v;
-				++n;
-			}
-			if((n>0)&&(Math.abs(tot)>1.0e-8)) {
-				final double mean = tot/(double)n;
-				final ArrayList<String> keys = new ArrayList<String>(levelEncodings.keySet());
-				for(final String k: keys) {
-					levelEncodings.put(k,levelEncodings.get(k)-mean);
-				}
-			}
-		}
-		
+				
 		public double normSq() {
 			double nsq = 0.0;
 			for(final double v: levelEncodings.values()) {
@@ -105,20 +89,15 @@ public final class BTable {
 			final String outcome = me.getKey();
 			final int category = me.getValue();
 			final double sumOutcome = stat.totalByCategory[category] + smooth;
-			final GeneralIndicator bayesI = new GeneralIndicator(variable,"bayes_" + outcome,nlevels,-1);
 			final GeneralIndicator logBayesI = new GeneralIndicator(variable,"logbayes_" + outcome,nlevels,-1);
 			final GeneralIndicator runI= new GeneralIndicator(variable,"runTerm_" + outcome,nlevels,-1);
 			final GeneralIndicator logRunI = new GeneralIndicator(variable,"logRunTerm_" + outcome,nlevels,-1);
 			final GeneralIndicator runFI= new GeneralIndicator(variable,"runTermF_" + outcome,nlevels,-1);
 			final GeneralIndicator logRunFI = new GeneralIndicator(variable,"logRunTermF_" + outcome,nlevels,-1);
 			final GeneralIndicator balanceI = new GeneralIndicator(variable,"balance_" + outcome,nlevels,-1);
-			final GeneralIndicator balanceR = new GeneralIndicator(variable,"balanceR_" + outcome,nlevels,-1);
 			final GeneralIndicator balanceLR = new GeneralIndicator(variable,"balanceLR_" + outcome,nlevels,-1);
 			final GeneralIndicator superBalanceI = new GeneralIndicator(variable,"superBalance_" + outcome,nlevels,-1);
-			final GeneralIndicator superBalanceR = new GeneralIndicator(variable,"superBalanceR_" + outcome,nlevels,-1);
 			final GeneralIndicator superBalanceLR = new GeneralIndicator(variable,"superBalanceLR_" + outcome,nlevels,-1);
-			final GeneralIndicator balanceIU = new GeneralIndicator(variable,"balanceU_" + outcome,nlevels,-1);
-			final GeneralIndicator superBalanceIU = new GeneralIndicator(variable,"superBalanceU_" + outcome,nlevels,-1);
 			final GeneralIndicator effectI;
 			if(oldX!=null) {
 				effectI = new GeneralIndicator(variable,"effectTerm_" + outcome,nlevels,category);
@@ -132,7 +111,6 @@ public final class BTable {
 					{
 						final double sumLevelOutcome = blevelRow.totalByCorrectCategory[category] + smooth;
 						final double bayesTerm = (sumAll*sumLevelOutcome)/(sumOutcome*sumLevel); // initial Bayesian utility
-						bayesI.levelEncodings.put(level,bayesTerm);
 						logBayesI.levelEncodings.put(level,Math.log(bayesTerm));
 					}
 					{
@@ -146,19 +124,13 @@ public final class BTable {
 					{
 						final double balanceTerm = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPFixedCategory[category])/sumLevel;
 						balanceI.levelEncodings.put(level,balanceTerm);
-						final double balanceTermU = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPFixedCategory[category]);
-						balanceIU.levelEncodings.put(level,balanceTermU);
 						final double balanceRTerm = (blevelRow.totalByCorrectCategory[category]+smooth)/(blevelRow.sumPFixedCategory[category]+smooth);
-						balanceR.levelEncodings.put(level,balanceRTerm);
 						balanceLR.levelEncodings.put(level,Math.log(balanceRTerm));
 					}
 					{
 						final double superBalanceTerm = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPCorrectCategory[category])/sumLevel;
 						superBalanceI.levelEncodings.put(level,superBalanceTerm);
-						final double superBalanceTermU = (blevelRow.totalByCorrectCategory[category] - blevelRow.sumPCorrectCategory[category]);
-						superBalanceIU.levelEncodings.put(level,superBalanceTermU);
 						final double superBalanceRTerm = (blevelRow.totalByCorrectCategory[category]+smooth)/(blevelRow.sumPCorrectCategory[category]+smooth);
-						superBalanceR.levelEncodings.put(level,superBalanceRTerm);
 						superBalanceLR.levelEncodings.put(level,Math.log(superBalanceRTerm));
 					}
 				}
@@ -171,14 +143,13 @@ public final class BTable {
 			// finish encode
 			for( final GeneralIndicator indI : new GeneralIndicator[] {
 					effectI,
-					bayesI, logBayesI, 
+					logBayesI, 
 					runI, logRunI, runFI, logRunFI, 
-					balanceI, balanceIU, balanceR, balanceLR,
-					superBalanceI, superBalanceIU, superBalanceR, superBalanceLR, 
+					balanceI, balanceLR,
+					superBalanceI, superBalanceLR, 
 					}) {
 				if(null!=indI) {
-					indI.removeMean();
-					if(indI.normSq()>1.0e-5) {
+					if(indI.normSq()>1.0e-12) {
 						res.add(indI);
 					}
 				}
