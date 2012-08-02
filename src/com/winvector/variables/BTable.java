@@ -69,6 +69,22 @@ public final class BTable {
 			this.warmStartOutcome = warmStartOutcome;
 		}
 		
+		public void removeMean() {
+			double tot = 0.0;
+			long n = 0;
+			for(final double v: levelEncodings.values()) {
+				tot += v;
+				++n;
+			}
+			if((n>0)&&(Math.abs(tot)>1.0e-8)) {
+				final double mean = tot/(double)n;
+				final ArrayList<String> keys = new ArrayList<String>(levelEncodings.keySet());
+				for(final String k: keys) {
+					levelEncodings.put(k,levelEncodings.get(k)-mean);
+				}
+			}
+		}
+		
 		public double normSq() {
 			double nsq = 0.0;
 			for(final double v: levelEncodings.values()) {
@@ -153,14 +169,18 @@ public final class BTable {
 				}
 			}
 			// finish encode
-			for( final GeneralIndicator indI : new GeneralIndicator[] { bayesI, logBayesI, 
+			for( final GeneralIndicator indI : new GeneralIndicator[] {
+					effectI,
+					bayesI, logBayesI, 
 					runI, logRunI, runFI, logRunFI, 
 					balanceI, balanceIU, balanceR, balanceLR,
 					superBalanceI, superBalanceIU, superBalanceR, superBalanceLR, 
-					effectI }) {
-				if((null!=indI)&&(indI.normSq()>1.0e-5)) {
-					// TODO: could also normalize here
-					res.add(indI);
+					}) {
+				if(null!=indI) {
+					indI.removeMean();
+					if(indI.normSq()>1.0e-5) {
+						res.add(indI);
+					}
 				}
 			}
 		}
