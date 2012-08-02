@@ -67,7 +67,7 @@ public class TestOpt extends TestCase {
 	public void testNormV() {
 		// norm penalty should put max at 0 (and max value should be 0)
 		final int dim = 3;
-		final VectorFn f = new NormPenalty(dim,1.0e-2);
+		final VectorFn f = new NormPenalty(dim,1.0e-2,null);
 		final double[] x = new double[dim];
 		final VEval f0 = f.eval(x,false,false);
 		assertTrue(Math.abs(f0.fx)<1.0e-12);
@@ -76,7 +76,7 @@ public class TestOpt extends TestCase {
 	public void testNormV2() {
 		// norm penalty should put max at 0 (and max value should be 0)
 		final int dim = 3;
-		final VectorFn f = new NormPenalty(dim,1.0e-2);
+		final VectorFn f = new NormPenalty(dim,1.0e-2,null);
 		final double[] x = new double[dim];
 		x[1] = 0.1;
 		x[2] = -0.1;
@@ -87,7 +87,7 @@ public class TestOpt extends TestCase {
 	public void testNormGH() {
 		// norm penalty should put max at 0 (and max value should be 0)
 		final int dim = 3;
-		final VectorFn f = new NormPenalty(dim,1.0e-2);
+		final VectorFn f = new NormPenalty(dim,1.0e-2,null);
 		final double[] x = new double[dim];
 		x[1] = 0.1;
 		x[2] = -0.1;
@@ -97,7 +97,7 @@ public class TestOpt extends TestCase {
 	public void testNormOpt() {
 		// norm penalty should put max at 0 (and max value should be 0)
 		final int dim = 3;
-		final VectorFn f = new NormPenalty(dim,1.0e-2);
+		final VectorFn f = new NormPenalty(dim,1.0e-2,null);
 		final double[] x = new double[dim];
 		x[1] = 0.1;
 		x[2] = -0.1;

@@ -37,7 +37,7 @@ public class TestLogM extends TestCase {
 				 {   0, 1,  0 }
 		};
 		final RExample ex = new RExample(dat);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),0.1,null);
 		final double[] x0 = new double[sl.dim()];
 		for(int i=0;i<sl.dim();++i) {
 			x0[i] = i+1;
@@ -69,7 +69,7 @@ public class TestLogM extends TestCase {
 		final Newton nwt = new Newton();
 		final double reg = 0.1;
 		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(ex.dim,2);
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(new SigmoidLossMultinomial(ex.dim,2),ex),reg,null);
 		final double[] x0 = new double[sl.dim()];
 		final VEval opt = nwt.maximize(sl,x0,10);
 		//System.out.println("x(" + reg + "): " + opt.x);

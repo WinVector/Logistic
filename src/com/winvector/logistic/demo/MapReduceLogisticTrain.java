@@ -76,7 +76,7 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 				tmpPrefix,mrConfig,trainFile);
 		final ArrayList<VectorFn> fns = new ArrayList<VectorFn>();
 		fns.add(f);
-		fns.add(new NormPenalty(f.dim(),0.1));
+		fns.add(new NormPenalty(f.dim(),1.0e-5,defs.adaptions));
 		final VectorFn sl = new SumFn(fns); 
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,maxNewtonRounds);

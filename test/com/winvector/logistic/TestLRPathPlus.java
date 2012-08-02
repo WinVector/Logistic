@@ -141,7 +141,7 @@ public class TestLRPathPlus {
 		final VariableEncodings adapter = new VariableEncodings(def,useIntercept,null);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
-		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1);
+		final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),1.0e-5,null);
 		final VectorOptimizer nwt = new Newton();
 		final VEval opt = nwt.maximize(sl,null,Integer.MAX_VALUE);
 		System.out.println("done training\t" + new Date());
@@ -252,7 +252,7 @@ public class TestLRPathPlus {
 				System.out.println("new adapter: " + vectorEncodings.newAdapter);
 				final Iterable<ExampleRow> asTrain = new ExampleRowIterable(vectorEncodings.newAdapter,vectorEncodings.sample);
 				final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(vectorEncodings.newAdapter.dim(),vectorEncodings.newAdapter.noutcomes());
-				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),0.1);  // should be lower like 1.0e-3 but 0.1 forces more passes
+				final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),1.0e-5,vectorEncodings.newAdapter.adaptions);
 				final VectorOptimizer nwt = new Newton();
 				final VEval newOpt = nwt.maximize(sl,vectorEncodings.warmStart,Integer.MAX_VALUE);
 				if((null!=opt)&&(optfx+1.0e-3>=newOpt.fx)) {
@@ -298,7 +298,7 @@ public class TestLRPathPlus {
 			final VectorOptimizer polisher = new GradientDescent();
 			final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
 			final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),1.0e-5);
+			final VectorFn sl = NormPenalty.addPenalty(new DataFn<ExampleRow>(sigmoidLoss,asTrain),1.0e-5,standardEncodings.adaptions);
 			final double newScore = (new DataFn<ExampleRow>(new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes()),new ExampleRowIterable(standardEncodings,trainSource))).eval(newtonX,false,false).fx;
 			assertTrue(relDiff(newtonDataPortion,newScore)<1.0e-3);
 			final VEval opt = polisher.maximize(sl,newtonX,20);

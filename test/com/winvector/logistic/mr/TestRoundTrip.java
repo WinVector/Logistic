@@ -45,7 +45,7 @@ public class TestRoundTrip {
 		resDir.delete();
 		tmpDir.delete();
 		// test
-		assertTrue(Math.abs(accuracy-0.9693)<1.0e-3);
+		assertTrue(Math.abs(accuracy-0.9693)<1.0e-2);
 	}
 	
 	@Test
