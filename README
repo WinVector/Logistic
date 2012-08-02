@@ -13,6 +13,8 @@ Requires/Depends:
   http://www.h2database.com/html/main.html h2 database 1.2.147
   http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
   http://commons.apache.org/cli/ Apache commons CLI 1.2 or newer (command line interface)
+  http://acs.lbl.gov/software/colt/ Colt matrix library
+  https://github.com/WinVector/SQLScrewdriver SQL and file reading
 
-SQL stuff moved to https://github.com/WinVector/SQLScrewdriver
+Experimental large number of categories example: http://www.win-vector.com/blog/2012/08/a-bit-more-on-impact-coding/
 
