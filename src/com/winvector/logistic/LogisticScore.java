@@ -35,6 +35,7 @@ import com.winvector.util.TrivialReader;
 
 public class LogisticScore {
 	private static final String DATAURIKEY = "dataURI";
+	private static final String DATASEP = "sep";
 	private static final String DATAHDLKEY = "dataHDL";
 	private static final String DATATBLKEY = "dataTBL";
 	private static final String MODELKEY = "modelFile";
@@ -45,6 +46,7 @@ public class LogisticScore {
 		final Options cloptions = new Options();
 		cloptions.addOption(MODELKEY,true,"file to read serialized model from");
 		cloptions.addOption(DATAURIKEY,true,"URI to get scoring data from");
+		cloptions.addOption(DATASEP,true,"(optional) training data input separator");
 		cloptions.addOption(DATAHDLKEY,true,"XML file to get JDBC connection to scoring data table");
 		cloptions.addOption(DATATBLKEY,true,"table to use from database for scoring data");
 		cloptions.addOption(RESULTFILEKEY,true,"file to write results to");
@@ -91,7 +93,11 @@ public class LogisticScore {
 		if(cl.getOptionValue(DATAURIKEY)!=null) {
 			final URI trainURI = new URI(cl.getOptionValue(DATAURIKEY));
 			log.info(" source URI: " + trainURI.toString());
-			testSource = new TrivialReader(trainURI,'\t',null,false,null, false);
+			char sep = '\t';
+			if(cl.getOptionValue(DATASEP)!=null) {
+				sep = cl.getOptionValue(DATASEP).charAt(0);
+			}
+			testSource = new TrivialReader(trainURI,sep,null,false,null, false);
 		} else {
 			final URI dbProps = new URI(cl.getOptionValue(DATAHDLKEY));
 			final String dbTable = cl.getOptionValue(DATATBLKEY);
@@ -122,6 +128,7 @@ public class LogisticScore {
 		ArrayList<String> headerFlds = null;
 		long nToCompare = 0;
 		long nRight = 0;
+		long[][] confusionMatrix = new long[model.config.noutcomes()][model.config.noutcomes()];
 		for(final BurstMap row: testSource) {
 			if(null==headerFlds) {
 				headerFlds = new ArrayList<String>(row.keySet());
@@ -155,12 +162,7 @@ public class LogisticScore {
 				}
 				p.print(pred[i]);
 			}
-			int argMax = 0;
-			for(int i=1;i<pred.length;++i) {
-				if(pred[i]>pred[argMax]) {
-					argMax = i;
-				}
-			}
+			final int argMax = HelperFns.argmax(pred);
 			p.print("\t" + model.config.outcome(argMax));
 			p.print("\t" + pred[argMax]);
 			for(final String hiK: headerFlds) {
@@ -173,16 +175,38 @@ public class LogisticScore {
 			p.println();
 			if(catInt>=0) {
 				++nToCompare;
-				final boolean good = (pred!=null)&&HelperFns.isGoodPrediction(pred,ei);
+				final boolean good = (pred!=null)&&(catInt==argMax);
 				if(good) {
 					++nRight;
 				}
+				confusionMatrix[argMax][catInt] += 1;
 			}
 		}
 		p.close();
 		final double testAccuracy = nRight/(double)nToCompare;
 		log.info("test accuracy: " + testAccuracy);
 		log.info("wrote: " + resultFile.getAbsolutePath());
+		System.out.println();
+		System.out.println();
+		System.out.println("Consfusion matrix:");
+		System.out.print("prediction");
+		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
+			System.out.print("\t" + "actual");
+		}
+		System.out.print("index:outcome");
+		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
+			System.out.print("\t" + correctI + ":" + model.config.outcome(correctI));
+		}
+		System.out.println();
+		for(int predI = 0;predI< model.config.noutcomes();++predI) {
+			System.out.print("" + predI + ":" + model.config.outcome(predI));
+			for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
+				System.out.print("\t" + confusionMatrix[predI][correctI]);
+			}
+			System.out.println();
+		}
+		System.out.println();
+		System.out.println();
 		return testAccuracy;
 	}
 

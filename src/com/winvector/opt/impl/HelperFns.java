@@ -13,15 +13,20 @@ import com.winvector.util.ThreadedReducer;
 public class HelperFns {
 
 
-	
-	public static boolean isGoodPrediction(final double[] pred, final ExampleRow ei) {
-		double max = Double.NEGATIVE_INFINITY;
-		for(int i=0;i<pred.length;++i) {
-			if(i!=ei.category()) {
-				max = Math.max(max,pred[i]);
+	public static int argmax(final double[] pred) {
+		int choice = 0;
+		final int n = pred.length;
+		for(int i=1;i<n;++i) {
+			if(pred[i]>pred[choice]) {
+				choice = i;
 			}
 		}
-		final boolean good =  pred[ei.category()]>max;
+		return choice;
+	}
+	
+	public static boolean isGoodPrediction(final double[] pred, final ExampleRow ei) {
+		final int predi = argmax(pred);
+		final boolean good = predi==ei.category();
 		return good;
 	}
 	
