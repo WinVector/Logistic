@@ -262,8 +262,10 @@ public class LogisticTrain {
 				log.info(" query: " + origSource);
 			}
 			if(memorize) {
+				final Ticker ticker = new Ticker("LogisticTrain-memorize data");
 				final ArrayList<BurstMap> list = new ArrayList<BurstMap>();
 				for(final BurstMap row: origSource) {
+					ticker.tick();
 					list.add(row);
 				}
 				trainSource = list;

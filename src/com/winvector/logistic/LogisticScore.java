@@ -23,14 +23,15 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.winvector.opt.def.DModel;
 import com.winvector.db.DBIterable;
 import com.winvector.db.DBUtil;
 import com.winvector.db.DBUtil.DBHandle;
+import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.util.BurstMap;
+import com.winvector.util.Ticker;
 import com.winvector.util.TrivialReader;
 
 public class LogisticScore {
@@ -129,7 +130,9 @@ public class LogisticScore {
 		long nToCompare = 0;
 		long nRight = 0;
 		long[][] confusionMatrix = new long[model.config.noutcomes()][model.config.noutcomes()];
+		final Ticker ticker = new Ticker("LogisticScore");
 		for(final BurstMap row: testSource) {
+			ticker.tick();
 			if(null==headerFlds) {
 				headerFlds = new ArrayList<String>(row.keySet());
 				for(int i=0;i<model.config.noutcomes();++i) {
@@ -193,6 +196,7 @@ public class LogisticScore {
 		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
 			System.out.print("\t" + "actual");
 		}
+		System.out.println();
 		System.out.print("index:outcome");
 		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
 			System.out.print("\t" + correctI + ":" + model.config.outcome(correctI));
