@@ -108,6 +108,7 @@ public final class Newton implements VectorOptimizer {
 				bestEval[0] = f.eval(x0,true,true);
 			}
 		}
+		log.info("initial Newton v: " + bestEval[0].fx);
 		final double lastRecord = bestEval[0].fx;
 		final NewtonReturn nr = newtonStep(f.dim(),bestEval[0]);
 		boolean goodStep = false;
