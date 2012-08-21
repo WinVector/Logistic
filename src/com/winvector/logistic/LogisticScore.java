@@ -125,7 +125,12 @@ public class LogisticScore {
 	public static double score(final Model model, final Iterable<BurstMap> testSource, final File resultFile) throws FileNotFoundException, IOException, ClassNotFoundException {
 		final Log log = LogFactory.getLog(LogisticScore.class);
 		final DModel<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
-		final PrintStream p = new PrintStream(new FileOutputStream(resultFile));
+		final PrintStream p;
+		if(null!=resultFile) {
+			p = new PrintStream(new FileOutputStream(resultFile));
+		} else {
+			p = null;
+		}
 		ArrayList<String> headerFlds = null;
 		long nToCompare = 0;
 		long nRight = 0;
@@ -135,19 +140,21 @@ public class LogisticScore {
 			ticker.tick();
 			if(null==headerFlds) {
 				headerFlds = new ArrayList<String>(row.keySet());
-				for(int i=0;i<model.config.noutcomes();++i) {
-					final String cat = model.config.outcome(i);
-					if(i>0) {
-						p.print("\t");
+				if(null!=p) {
+					for(int i=0;i<model.config.noutcomes();++i) {
+						final String cat = model.config.outcome(i);
+						if(i>0) {
+							p.print("\t");
+						}
+						p.print("model.predict" + "." + model.config.def().resultColumn + "." + cat);
 					}
-					p.print("model.predict" + "." + model.config.def().resultColumn + "." + cat);
+					p.print("\t" + "model.chosen.Outcome");
+					p.print("\t" + "model.predict.Outcome");
+					for(final String fldi: headerFlds) {
+						p.print("\t" + fldi);
+					}
+					p.println();
 				}
-				p.print("\t" + "model.chosen.Outcome");
-				p.print("\t" + "model.predict.Outcome");
-				for(final String fldi: headerFlds) {
-					p.print("\t" + fldi);
-				}
-				p.println();
 			}
 			int catInt = -1;
 			final String resStr = row.getAsString(model.config.def().resultColumn);
@@ -159,23 +166,25 @@ public class LogisticScore {
 			}
 			final ExampleRow ei = new SparseExampleRow(model.config.vector(row),model.config.weight(row),catInt);
 			final double[] pred = sigmoidLoss.predict(model.coefs,ei);
-			for(int i=0;i<model.config.noutcomes();++i) { // non-empty list
-				if(i!=0) {
-					p.print("\t");
-				}
-				p.print(pred[i]);
-			}
 			final int argMax = HelperFns.argmax(pred);
-			p.print("\t" + model.config.outcome(argMax));
-			p.print("\t" + pred[argMax]);
-			for(final String hiK: headerFlds) {
-				String value = row.getAsString(hiK);
-				if(value==null) {
-					value = "";
+			if(null!=p) {
+				for(int i=0;i<model.config.noutcomes();++i) { // non-empty list
+					if(i!=0) {
+						p.print("\t");
+					}
+					p.print(pred[i]);
 				}
-				p.print("\t" + value);
+				p.print("\t" + model.config.outcome(argMax));
+				p.print("\t" + pred[argMax]);
+				for(final String hiK: headerFlds) {
+					String value = row.getAsString(hiK);
+					if(value==null) {
+						value = "";
+					}
+					p.print("\t" + value);
+				}
+				p.println();
 			}
-			p.println();
 			if(catInt>=0) {
 				++nToCompare;
 				final boolean good = (pred!=null)&&(catInt==argMax);
@@ -185,10 +194,14 @@ public class LogisticScore {
 				confusionMatrix[argMax][catInt] += 1;
 			}
 		}
-		p.close();
+		if(null!=p) {
+			p.close();
+		}
 		final double testAccuracy = nRight/(double)nToCompare;
-		log.info("test accuracy: " + testAccuracy);
-		log.info("wrote: " + resultFile.getAbsolutePath());
+		log.info("scored accuracy: " + testAccuracy);
+		if(null!=resultFile) {
+			log.info("wrote: " + resultFile.getAbsolutePath());
+		}
 		System.out.println();
 		System.out.println();
 		System.out.println("Consfusion matrix:");

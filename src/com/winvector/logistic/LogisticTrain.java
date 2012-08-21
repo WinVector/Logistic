@@ -321,9 +321,10 @@ public class LogisticTrain {
 	
 	
 	public final void run(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey,
-			final File resultFileSer, final File resultFileTSV) throws IOException, ParseException {
+			final File resultFileSer, final File resultFileTSV) throws IOException, ParseException, ClassNotFoundException {
 		final Log log = LogFactory.getLog(this.getClass());
 		final Model model = train(trainSource,f,weightKey);
+		LogisticScore.score(model, trainSource, null);
 		if(resultFileSer!=null) {
 			log.info("writing " + resultFileSer.getAbsolutePath());
 			final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(resultFileSer));

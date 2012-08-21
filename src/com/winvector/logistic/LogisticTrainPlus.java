@@ -16,7 +16,6 @@ import com.winvector.opt.def.VectorOptimizer;
 import com.winvector.opt.impl.ConjugateGradientOptimizer;
 import com.winvector.opt.impl.DataFn;
 import com.winvector.opt.impl.ExampleRowIterable;
-import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.Newton;
 import com.winvector.opt.impl.NormPenalty;
 import com.winvector.util.BurstMap;
@@ -107,11 +106,6 @@ public final class LogisticTrainPlus extends LogisticTrain {
 		} else {
 			model.coefs = newtonX;
 		}
-		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(standardEncodings.dim(),standardEncodings.noutcomes());
-		sigmoidLoss.useFastExp = useFastExp;
-		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(standardEncodings,trainSource);
-		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,model.coefs);
-		log.info("train accuracy:" + trainAccuracy);
 		return model;
 	}
 }
