@@ -92,31 +92,48 @@ public final class Newton implements VectorOptimizer {
 	}
 
 
-	
-	@SuppressWarnings("unused")
 	public VEval maximizeStep(final VectorFn f, final double[] x0,
 			final VEval cachedEval,
 			final boolean wantGrad, final boolean wantHessian) {
 		log.info("start Newton step: " + ((cachedEval!=null)?""+cachedEval.fx:"")); 
 		final VEval[] bestEval = new VEval[1];  // vector so gradient polish can alter value
+		final int dim = f.dim();
 		if(cachedEval!=null && cachedEval.gx!=null && cachedEval.hx!=null) {
 			bestEval[0] = cachedEval;
 		} else {
 			if(null==x0) {
-				bestEval[0] = f.eval(new double[f.dim()],true,true);
+				bestEval[0] = f.eval(new double[dim],true,true);
 			} else {
 				bestEval[0] = f.eval(x0,true,true);
 			}
 		}
 		log.info("initial Newton v: " + bestEval[0].fx);
 		final double lastRecord = bestEval[0].fx;
-		final NewtonReturn nr = newtonStep(f.dim(),bestEval[0]);
-		boolean goodStep = false;
+		final NewtonReturn nr = newtonStep(dim,bestEval[0]);
 		if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
 			final VEval newEval = f.eval(nr.newX,wantGrad,wantHessian);
 			if(newEval.fx>lastRecord) {
 				bestEval[0] = newEval;
-				goodStep = true;
+			} else {
+				// probe a few more places before giving up
+				double maxDiff = 0.0;
+				for(int i=0;i<dim;++i) {
+					maxDiff = Math.max(maxDiff,Math.abs(x0[i]-newEval.x[i])/Math.max(1.0,Math.abs(x0[i])));
+				}
+				if(maxDiff>relImprovementTarget) {
+					double[] trial = new double[dim];
+					for(final double lambda: new double[] {0.5, 0.1, -0.1, 1.2}) {
+						for(int i=0;i<dim;++i) {
+							final double nxi = (1-lambda)*x0[i] + lambda*(newEval.x[i]); 
+							trial[i] = Math.min(boxBound,Math.max(-boxBound,nxi));
+						}
+						final VEval cEval = f.eval(trial,false,false);
+						if(cEval.fx>lastRecord) {
+							bestEval[0] = cEval;
+							break;
+						}
+					}
+				}
 			}
 		}
 		log.info("done Newton step: " + ((bestEval[0]!=null)?""+bestEval[0].fx:"")); 
