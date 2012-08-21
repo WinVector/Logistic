@@ -32,6 +32,11 @@ public final class NumericVariable implements VariableMapping {
 	}
 	
 	@Override
+	public boolean wantRegularization() {
+		return false;
+	}
+	
+	@Override
 	public void process(final BurstMap row, final double[] vec) {
 		final double v = row.getAsDouble(origColumn);
 		if(!Double.isNaN(v)) {

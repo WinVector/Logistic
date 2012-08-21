@@ -1,10 +1,10 @@
 package com.winvector.opt.impl;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 import com.winvector.opt.def.VEval;
 import com.winvector.opt.def.VectorFn;
-import com.winvector.variables.ConstRecord;
 import com.winvector.variables.VariableMapping;
 
 /**
@@ -13,7 +13,7 @@ import com.winvector.variables.VariableMapping;
  *
  */
 public class NormPenalty implements VectorFn {
-	private final int skipIndex;
+	private final BitSet skip = new BitSet();
 	private final double regularizeTerm;
 	private final int dim;
 	
@@ -26,15 +26,15 @@ public class NormPenalty implements VectorFn {
 	public NormPenalty(final int dim, final double regularizeTerm, final ArrayList<VariableMapping> adaptions) {
 		this.dim = dim;
 		this.regularizeTerm = regularizeTerm;
-		int toSkip = -1;
 		if(null!=adaptions) {
 			for(final VariableMapping ai: adaptions) {
-				if(ai instanceof ConstRecord) {
-					toSkip = ai.indexL();
+				if(!ai.wantRegularization()) {
+					for(int j=ai.indexL();j<ai.indexR();++j) {
+						skip.set(j);
+					}
 				}
 			}
 		}
-		skipIndex = toSkip;
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class NormPenalty implements VectorFn {
 		final VEval r = new VEval(x,wantGrad,wantHessian);
 		if(regularizeTerm>0.0) {
 			for(int i=0;i<dim;++i) {
-				if(skipIndex!=i) {
+				if(!skip.get(i)) {
 					final double xi = x[i];
 					r.fx += -regularizeTerm*xi*xi;
 					if(wantGrad) {

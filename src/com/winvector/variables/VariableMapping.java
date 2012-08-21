@@ -26,6 +26,13 @@ public interface VariableMapping extends Serializable {
 	 */
 	int indexR();
 
+
+	/**
+	 * 
+	 * @return true if want regularization (all but const terms should set this)
+	 */
+	boolean wantRegularization();
+
 	/**
 	 * Take data from row and paste into vec
 	 * @param row

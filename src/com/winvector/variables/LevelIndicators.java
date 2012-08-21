@@ -54,6 +54,10 @@ public final class LevelIndicators implements VariableMapping {
 		return index + levelCodes.size();
 	}
 	
+	@Override
+	public boolean wantRegularization() {
+		return false;
+	}
 
 	@Override
 	public void process(final BurstMap row, final double[] vec) {

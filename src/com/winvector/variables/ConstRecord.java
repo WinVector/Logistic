@@ -28,6 +28,11 @@ public final class ConstRecord implements VariableMapping {
 	public int indexR() {
 		return index + 1;
 	}
+	
+	@Override
+	public boolean wantRegularization() {
+		return true;
+	}
 
 	@Override
 	public void process(final BurstMap row, final double[] vec) {

@@ -60,6 +60,10 @@ public final class LevelVectors implements VariableMapping {
 		return index + targetDim;
 	}
 	
+	@Override
+	public boolean wantRegularization() {
+		return false;
+	}
 
 	@Override
 	public void process(final BurstMap row, final double[] vec) {
