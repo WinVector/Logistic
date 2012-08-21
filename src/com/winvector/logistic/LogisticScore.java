@@ -202,28 +202,26 @@ public class LogisticScore {
 		if(null!=resultFile) {
 			log.info("wrote: " + resultFile.getAbsolutePath());
 		}
-		System.out.println();
-		System.out.println();
-		System.out.println("Consfusion matrix:");
-		System.out.print("prediction");
+		final StringBuilder cmrep = new StringBuilder();
+		cmrep.append("Consfusion matrix:\n");
+		cmrep.append("prediction");
 		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
-			System.out.print("\t" + "actual");
+			cmrep.append("\t" + "actual");
 		}
-		System.out.println();
-		System.out.print("index:outcome");
+		cmrep.append("\n");
+		cmrep.append("index:outcome");
 		for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
-			System.out.print("\t" + correctI + ":" + model.config.outcome(correctI));
+			cmrep.append("\t" + correctI + ":" + model.config.outcome(correctI));
 		}
-		System.out.println();
+		cmrep.append("\n");
 		for(int predI = 0;predI< model.config.noutcomes();++predI) {
-			System.out.print("" + predI + ":" + model.config.outcome(predI));
+			cmrep.append("" + predI + ":" + model.config.outcome(predI));
 			for(int correctI = 0;correctI< model.config.noutcomes();++correctI) {
-				System.out.print("\t" + confusionMatrix[predI][correctI]);
+				cmrep.append("\t" + confusionMatrix[predI][correctI]);
 			}
-			System.out.println();
+			cmrep.append("\n");
 		}
-		System.out.println();
-		System.out.println();
+		log.info(cmrep.toString());
 		return testAccuracy;
 	}
 
