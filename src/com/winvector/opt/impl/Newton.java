@@ -115,24 +115,46 @@ public final class Newton implements VectorOptimizer {
 			if(newEval.fx>lastRecord) {
 				bestEval[0] = newEval;
 			} else {
-				// probe a few more places before giving up
-				double maxDiff = 0.0;
-				for(int i=0;i<dim;++i) {
-					maxDiff = Math.max(maxDiff,Math.abs(x0[i]-newEval.x[i])/Math.max(1.0,Math.abs(x0[i])));
-				}
-				if(maxDiff>relImprovementTarget) {
-					double[] trial = new double[dim];
-					for(final double lambda: new double[] {0.5, 0.1, -0.1, 1.2}) {
+				// probe more before giving up
+				double lambda = 0.5;
+				double[] trial = new double[dim];
+				while(true) {
+					boolean didPosProbe = false;
+					{
+						double maxDiff = 0.0;
 						for(int i=0;i<dim;++i) {
 							final double nxi = (1-lambda)*x0[i] + lambda*(newEval.x[i]); 
 							trial[i] = Math.min(boxBound,Math.max(-boxBound,nxi));
+							maxDiff = Math.max(maxDiff,Math.abs(trial[i]-x0[i]));
 						}
-						final VEval cEval = f.eval(trial,false,false);
-						if(cEval.fx>lastRecord) {
-							bestEval[0] = cEval;
-							break;
+						if(maxDiff>relImprovementTarget) {
+							didPosProbe = true;
+							final VEval cEval = f.eval(trial,false,false);
+							if(cEval.fx>lastRecord) {
+								bestEval[0] = cEval;
+								break;
+							}
 						}
 					}
+					{
+						double maxDiff = 0.0;
+						for(int i=0;i<dim;++i) {
+							final double nxi = (1-lambda)*x0[i] - lambda*(newEval.x[i]); 
+							trial[i] = Math.min(boxBound,Math.max(-boxBound,nxi));
+							maxDiff = Math.max(maxDiff,Math.abs(trial[i]-x0[i]));
+						}
+						if(maxDiff>relImprovementTarget) {
+							final VEval cEval = f.eval(trial,false,false);
+							if(cEval.fx>lastRecord) {
+								bestEval[0] = cEval;
+								break;
+							}
+						}
+					}
+					if(!didPosProbe) {
+						break;
+					}
+					lambda = 0.1*lambda;
 				}
 			}
 		}
