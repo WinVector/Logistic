@@ -55,6 +55,7 @@ public final class Newton implements VectorOptimizer {
 	}
 	
 	private static final class NewtonReturn {
+		@SuppressWarnings("unused")
 		public final StepStatus status;
 		public final double[] newX;
 		
@@ -77,18 +78,16 @@ public final class Newton implements VectorOptimizer {
 				hx[i][i] += ridgeTerm;
 			}
 		}
-		double[] delta = null;
 		try {  // try a Newton step
-			delta = lSolver.solve(hx,lastEval.gx);
+			final double[] delta = lSolver.solve(hx,lastEval.gx);
+			final double[] newX = newX(lastEval.x,delta,-1);
+			return new NewtonReturn(StepStatus.goodNewtonStep,newX);
 		} catch (Exception ex) {
 			log.info("solve caught: " + ex);
 		}
-		if(delta!=null) {
-			final double[] newX = newX(lastEval.x,delta,-1);
-			return new NewtonReturn(StepStatus.goodNewtonStep,newX);
-		} else {
-			return new NewtonReturn(StepStatus.linFailure,null);
-		}
+		// sub in gradient as a usable direction
+		final double[] newX = newX(lastEval.x,lastEval.gx,-1);
+		return new NewtonReturn(StepStatus.linFailure,newX);
 	}
 
 
@@ -110,7 +109,7 @@ public final class Newton implements VectorOptimizer {
 		log.info("initial Newton v: " + bestEval[0].fx);
 		final double lastRecord = bestEval[0].fx;
 		final NewtonReturn nr = newtonStep(dim,bestEval[0]);
-		if((nr.status==StepStatus.goodNewtonStep)&&(nr.newX!=null)) {
+		if(nr.newX!=null) {
 			final VEval newEval = f.eval(nr.newX,wantGrad,wantHessian);
 			if(newEval.fx>lastRecord) {
 				bestEval[0] = newEval;
