@@ -52,11 +52,11 @@ public class TestOpt extends TestCase {
 		//System.out.println("fn: " + fn);
 		final int dim = f.dim();
 		for(int i=0;i<dim;++i) {
-			if(fx.gx[i]-fn.gx[i]>=tol) { //extra if lets us set a breakpoint
+			if(Math.abs(fx.gx[i]-fn.gx[i])>=tol) { //extra if lets us set a breakpoint
 				assertTrue(Math.abs(fx.gx[i]-fn.gx[i])<tol);
 			}
 			for(int j=0;j<dim;++j) {
-				if(fx.hx[i][j]-fn.hx[i][j]>=tol) { //extra if lets us set a breakpoint
+				if(Math.abs(fx.hx[i][j]-fn.hx[i][j])>=tol) { //extra if lets us set a breakpoint
 					assertTrue(Math.abs(fx.hx[i][j]-fn.hx[i][j])<tol);
 				}
 			}

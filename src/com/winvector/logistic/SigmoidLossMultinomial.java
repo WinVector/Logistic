@@ -25,6 +25,16 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 	public final int vdim;
 	public final int noutcomes;
 	public boolean useFastExp = false;
+	/**
+	 * when marjorize=true don't compute Hessian, but instead Hessian of a majorizing or minorizing function as appropriate.
+	 * Gaurantees Newton step is a contraction (but loses rate of convergence guarnatees).
+	 * majorize=true should work in theory see:
+	 *  ÒA Tutorial on MM AlgorithmsÓ, David R. Hunter, Kenneth Lange; 
+	 *  ÒMonotonicity of Quadratic-Approximation AlgorithmsÓ, Dankmar Bohning, Bruce G. Lindsay, Ann. Inst. Statist. Math, Vol. 40, No. 4, pp 641-664, 1988
+	 * 
+	 * but, dreadfully slow convergence (at least when combined with crazy adapter test).  ideally could mix majorized and non-majorized steps
+	 */
+	public boolean majorize = false;
 	
 	public SigmoidLossMultinomial(final int vdim, final int noutcomes) {
 		this.vdim = vdim;
@@ -92,10 +102,18 @@ public final class SigmoidLossMultinomial implements LinearContribution<ExampleR
 				for(int cati=0;cati<noutcomes;++cati) {
 					for(int catj=0;catj<noutcomes;++catj) {
 						final double t;
-						if(cati==catj) {
-							t = -pred[cati]*(1.0-pred[cati]);
+						if(!majorize) {
+							if(cati==catj) {
+								t = -pred[cati]*(1.0-pred[cati]);
+							} else {
+								t = pred[cati]*pred[catj];
+							}
 						} else {
-							t = pred[cati]*pred[catj];
+							if(cati==catj) {
+								t = -0.25; // greatest global lower bound
+							} else {
+								t = 0.0;   // greatest global lower bound
+							}
 						}
 						for(int ii=0;ii<nindices;++ii) {
 							final int i = di.getKthIndex(ii) + cati*vdim;
