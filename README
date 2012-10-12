@@ -5,13 +5,16 @@ Large scale (though not large number of categorical levels) regularized logistic
        http://www.win-vector.com/blog/2011/09/the-simpler-derivation-of-logistic-regression/
        http://www.win-vector.com/blog/2010/11/learn-a-powerful-machine-learning-tool-logistic-regression-and-beyond/
 
-All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http://www.gnu.org/copyleft/gpl.html )
+The experimental class LogisticTrainPlus allows useful encoding of an arbitrary number of categorical levels.  See:
+    http://www.win-vector.com/blog/2012/08/a-bit-more-on-impact-coding/
+
+All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http//www.gnu.org/copyleft/gpl.html ).  This is demonstration/experimental code.  You may want to consier Apache's Mahout which does do logistic regression:  ( see: https://cwiki.apache.org/MAHOUT/logistic-regression.html and http://imiloainf.wordpress.com/2011/11/02/mahout-logistic-regression/ ).
 
 Requires/Depends:
   https://github.com/WinVector/SQLScrewdriver/blob/master/SQLScrewdriver.jar SQLScrewdriver.jar https://github.com/WinVector/SQLScrewdriver
   http://www.junit.org/ JUnit 4.4 or newer
   http://www.h2database.com/html/main.html h2 database 1.2.147
-  http://hadoop.apache.org/mapreduce/releases.html" Hadoop 0.20.2
+  http://hadoop.apache.org/mapreduce/releases.html" (Tested with Hadoop 0.20.2, 1.0.0 an 1.0.3)
   http://commons.apache.org/cli/ Apache commons CLI 1.2 or newer (command line interface)
   http://acs.lbl.gov/software/colt/ Colt matrix library
   https://github.com/WinVector/SQLScrewdriver SQL and file reading
