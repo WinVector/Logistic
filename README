@@ -8,7 +8,7 @@ Large scale (though not large number of categorical levels) regularized logistic
 The experimental class LogisticTrainPlus allows useful encoding of an arbitrary number of categorical levels.  See:
     http://www.win-vector.com/blog/2012/08/a-bit-more-on-impact-coding/
 
-All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http//www.gnu.org/copyleft/gpl.html ).  This is demonstration/experimental code.  You may want to consier Apache's Mahout which does do logistic regression:  ( see: https://cwiki.apache.org/MAHOUT/logistic-regression.html and http://imiloainf.wordpress.com/2011/11/02/mahout-logistic-regression/ ).
+All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http//www.gnu.org/copyleft/gpl.html ).  This is demonstration/experimental code.  You may want to consider Apache's Mahout which does do logistic regression:  ( see: https://cwiki.apache.org/MAHOUT/logistic-regression.html and http://imiloainf.wordpress.com/2011/11/02/mahout-logistic-regression/ ).
 
 Requires/Depends:
   https://github.com/WinVector/SQLScrewdriver/blob/master/SQLScrewdriver.jar SQLScrewdriver.jar https://github.com/WinVector/SQLScrewdriver
@@ -21,3 +21,39 @@ Requires/Depends:
 
 Experimental large number of categories example: http://www.win-vector.com/blog/2012/08/a-bit-more-on-impact-coding/
 
+
+
+
+Example of running at the command line (using some Apache support classes, but not running under Hadoop):
+
+1) 
+   Get a data file.  For our example we took the data file from http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data saved it and added a header line of the form "SepalLength,SepalWidth,PetalLength,PetalWidth,TrainingClass" to make the file machine readable.  The edited file is available here: https://github.com/WinVector/Logistic/blob/master/iris.data.txt .
+
+2) 
+   Get all the supporting code you need and set your Java CLASSPATH.  To run this you need all of the classes from:
+   https://github.com/WinVector/Logistic
+   https://github.com/WinVector/SQLScrewdriver
+   http://acs.lbl.gov/software/colt/
+   and some of the Apache commons files (command line parsing and logging), we got these from the Hadoop-1.0.3 lib directory: http://hadoop.apache.org/releases.html#Download
+
+  in our shell (bash on OSX) we set our class variable as follows:
+
+  CLASSES="/Users/johnmount/Documents/workspace/hadoop-1.0.3/lib/commons-logging-1.1.1.jar:/Users/johnmount/Documents/workspace/hadoop-1.0.3/lib/commons-logging-api-1.0.4.jar:/Users/johnmount/Documents/workspace/hadoop-1.0.3/lib/commons-cli-1.2.jar:/Users/johnmount/Documents/workspace/Logistic/bin:/Users/johnmount/Documents/workspace/Colt-1.2.0/bin:/Users/johnmount/Documents/workspace/SQLScrewdriver/bin"
+
+  (separator is ";" on Windows)
+
+3)
+  In the directory you saved the training data file run the logistic training procedure:
+
+  java -cp $CLASSES com.winvector.logistic.LogisticTrain -trainURI file:iris.data.txt -sep , -formula "TrainingClass ~ SepalLength + SepalWidth + PetalLength + PetalWidth" -resultSer iris_model.ser
+
+  produces iris_model.ser
+
+4)
+   In the same directory run the logistic scoring procedure:
+
+   java -cp $CLASSES com.winvector.logistic.LogisticScore -dataURI file:iris.data.txt -sep , -modelFile iris_model.ser -resultFile iris.scored.tsv
+
+  produces iris.scored.tsv
+
+Again this is experimental code.  If you want the standard Hadoop implementation of logistic regression take a look at Mahout (  https://cwiki.apache.org/MAHOUT/logistic-regression.html and http://imiloainf.wordpress.com/2011/11/02/mahout-logistic-regression/ ).  If you want to try out logistic regression without Hadoop use R ( http://cran.r-project.org ).

@@ -47,7 +47,7 @@ public class LogisticScore {
 		final Options cloptions = new Options();
 		cloptions.addOption(MODELKEY,true,"file to read serialized model from");
 		cloptions.addOption(DATAURIKEY,true,"URI to get scoring data from");
-		cloptions.addOption(DATASEP,true,"(optional) training data input separator");
+		cloptions.addOption(DATASEP,true,"(optional) data input separator");
 		cloptions.addOption(DATAHDLKEY,true,"XML file to get JDBC connection to scoring data table");
 		cloptions.addOption(DATATBLKEY,true,"table to use from database for scoring data");
 		cloptions.addOption(RESULTFILEKEY,true,"file to write results to");
