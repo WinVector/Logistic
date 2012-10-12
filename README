@@ -87,11 +87,11 @@ This  produces iris_model.ser , the trained model.  The diagnostic printouts sho
 
 <pre>
 INFO: Consfusion matrix:
-predictionactualactualactual
-index:outcome0:Iris-setosa1:Iris-versicolor2:Iris-virginica
-0:Iris-setosa5000
-1:Iris-versicolor0471
-2:Iris-virginica0349
+prediction	actual	actual	actual
+index:outcome	0:Iris-setosa	1:Iris-versicolor	2:Iris-virginica
+0:Iris-setosa	50	0	0
+1:Iris-versicolor	0	47	1
+2:Iris-virginica	0	3	49
 </pre>
 
 Notice that there are only 4 training errors (1 Iris-verginica classified as Iris-versicolor and 3 iris-versicolor classified as Irs-virginica).
@@ -101,22 +101,22 @@ The model coefficients are also printed as part of the diagnostics.
 
 <pre>
 INFO: soln details:
-outcomeoutcomegroupvariablekindlevelvalue
-Iris-setosa0Const0.774522294889561
-Iris-setosa0PetalLengthNumeric-5.192578560594749
-Iris-setosa0PetalWidthNumeric-2.357410090972314
-Iris-setosa0SepalLengthNumeric1.69382466234698
-Iris-setosa0SepalWidthNumeric3.9224697382723903
-Iris-versicolor1Const1.8730846627542541
-Iris-versicolor1PetalLengthNumeric-0.3747220505092903
-Iris-versicolor1PetalWidthNumeric-2.839314336523609
-Iris-versicolor1SepalLengthNumeric1.1786843497402208
-Iris-versicolor1SepalWidthNumeric0.2589801610139257
-Iris-virginica2Const-2.6476069576668615
-Iris-virginica2PetalLengthNumeric5.567416774143793
-Iris-virginica2PetalWidthNumeric5.196786825681218
-Iris-virginica2SepalLengthNumeric-2.8725550015586947
-Iris-virginica2SepalWidthNumeric-4.1815354814927215
+outcome	outcomegroup	variable	kind	level	value
+Iris-setosa	0		Const		0.774522294889561
+Iris-setosa	0	PetalLength	Numeric		-5.192578560594749
+Iris-setosa	0	PetalWidth	Numeric		-2.357410090972314
+Iris-setosa	0	SepalLength	Numeric		1.69382466234698
+Iris-setosa	0	SepalWidth	Numeric		3.9224697382723903
+Iris-versicolor	1		Const		1.8730846627542541
+Iris-versicolor	1	PetalLength	Numeric		-0.3747220505092903
+Iris-versicolor	1	PetalWidth	Numeric		-2.839314336523609
+Iris-versicolor	1	SepalLength	Numeric		1.1786843497402208
+Iris-versicolor	1	SepalWidth	Numeric		0.2589801610139257
+Iris-virginica	2		Const		-2.6476069576668615
+Iris-virginica	2	PetalLength	Numeric		5.567416774143793
+Iris-virginica	2	PetalWidth	Numeric		5.196786825681218
+Iris-virginica	2	SepalLength	Numeric		-2.8725550015586947
+Iris-virginica	2	SepalWidth	Numeric		-4.1815354814927215
 </pre>
 
 
