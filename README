@@ -10,6 +10,8 @@ The experimental class LogisticTrainPlus allows useful encoding of an arbitrary 
 
 All material copyright Win-Vector LLC and distributed with license: GPLv3 (see: http//www.gnu.org/copyleft/gpl.html ).  This is demonstration/experimental code.  You may want to consider Apache's Mahout which does do logistic regression:  ( see: https://cwiki.apache.org/MAHOUT/logistic-regression.html and http://imiloainf.wordpress.com/2011/11/02/mahout-logistic-regression/ ).
 
+See: http://www.win-vector.com/blog/2012/10/added-worked-example-to-logistic-regression-project/ for the purpose of this project.
+
 Requires/Depends:
   https://github.com/WinVector/SQLScrewdriver/blob/master/SQLScrewdriver.jar SQLScrewdriver.jar https://github.com/WinVector/SQLScrewdriver
   http://www.junit.org/ JUnit 4.4 or newer
