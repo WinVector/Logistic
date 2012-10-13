@@ -134,7 +134,21 @@ This  produces iris.scored.tsv , the final result.  The scored file is essential
 </li>
 </ol>
 
-Again this is experimental code.  It can do things other code bases can not.  If you need one of its features or capabilities it is very much worth the trouble.  But if you can make do with a standard package like R you have less trouble and are more able to interact with others work.
+For the Hadoop demonstrations of training and scoring the commands are as follows (though obviously some of the details depend on your Hadoop set-up):
+
+Get or build a jar containing the Logistic code, SQLScrewdriver code and free portions of the COLT library (pre built: WinVectorLogistic.Hadoop0.20.2.jar).
+Make sure the training file is tab-separated (instead of comma separated). For example the iris data in such a format is here: iris.data.tsv
+Run the Hadoop version of the trainer:
+
+/Users/johnmount/project/hadoop-1.0.3/bin/hadoop jar /Users/johnmount/project/Logistic/WinVectorLogistic.Hadoop0.20.2.jar logistictrain iris.data.tsv "TrainingClass ~ SepalLength + SepalWidth + PetalLength + PetalWidth" iris_model.ser
+
+Run the Hadoop version of the scorring function:
+
+/Users/johnmount/project/hadoop-1.0.3/bin/hadoop jar /Users/johnmount/project/Logistic/WinVectorLogistic.Hadoop0.20.2.jar logisticscore iris_model.ser iris.data.tsv scoreDir
+
+Scored output is left in Hadoop format in the user specified scoreDir (slightly different format than the stand-alone programs). The passes take quite a long time due to the overhead of setting up and tearing down a Hadoop environment for such a small problem. Also if you are running in a serious Hadoop environment (like elastic map-reduce) you will have to change certain file names to the type of URI type the system is using. In our elastic map reduce example we used S3 containers which had forms like: “s3n://bigModel.ser” and so on.
+
+Again: this is experimental code. It can do things other code bases can not. If you need one of its features or capabilities it is very much worth the trouble. But if you can make do with a standard package like R you have less trouble and are more able to interact with others work.
 
 </body>
 </html>
