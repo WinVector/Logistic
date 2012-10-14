@@ -56,7 +56,7 @@ public class PrimaVariableInfo implements Serializable {
 				continue;
 			}
 			final String sValue = row.getAsString(key);
-			if(sValue!=null) {
+			if((sValue!=null)&&(sValue.trim().length()>0)) {
 				final double nValue = row.getAsDouble(key);
 				if((!Double.isInfinite(nValue))&&(!Double.isNaN(nValue))) {
 					if (!numericColumnSet.contains(key)) {
