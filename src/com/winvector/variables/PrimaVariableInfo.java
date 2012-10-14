@@ -45,12 +45,30 @@ public class PrimaVariableInfo implements Serializable {
 		forcedCategorical = new TreeSet<String>(formula.forcedCategorical);
 		readyForDefTracking();
 	}
+
+	/**
+	 * confirm row has complete set of non-empty independent variables
+	 * @param row
+	 * @return
+	 */
+	public boolean completeSetOfVars(final BurstMap row) {
+		for(final String key: variables) {
+			final String sValue = row.getAsString(key);
+			if((sValue==null)||(sValue.trim().length()<=0)) {
+				return false;
+			}
+		}
+		return true;
+	}
 		
 	/**
 	 * track: sets of levels, mean of numeric variable and distribution of outcomes
 	 * @param row
 	 */
 	public void trackVariableDefsFromRow(final BurstMap row) {
+		if(!completeSetOfVars(row)) {
+			return;
+		}
 		for(final String key: variables) {
 			if(catLevels.containsKey(key)||forcedNumeric.contains(key)) {
 				continue;
@@ -94,6 +112,9 @@ public class PrimaVariableInfo implements Serializable {
 	
 	
 	public void trackVariableLevelsFromRow(final BurstMap row) {
+		if(!completeSetOfVars(row)) {
+			return;
+		}
 		for(final Map.Entry<String,CountMap<String>> me: catLevels.entrySet()) {
 			final String key = me.getKey();
 			final CountMap<String> levels = me.getValue();

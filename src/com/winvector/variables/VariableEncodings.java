@@ -2,7 +2,6 @@ package com.winvector.variables;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -27,8 +26,6 @@ public final class VariableEncodings implements Serializable {
 	// derived results
 	public final SortedMap<String,Integer> outcomeCategories = new TreeMap<String,Integer>();
 	private final ArrayList<String> outcomeNames = new ArrayList<String>();
-	// scratch state
-	private final double[] vtmp;
 	
 	public VariableEncodings(final PrimaVariableInfo def, final boolean useIntercept, final String weightKey,
 			final Map<String,Map<String,VectorRow>> vectorEncodings) {
@@ -60,7 +57,6 @@ public final class VariableEncodings implements Serializable {
 			adapterDim += adaption.indexR() - adaption.indexL();
 		}
 		vdim = adapterDim;
-		vtmp = new double[vdim];
 		// encode outcome
 		for(final String oci: new TreeSet<String>(def.outcomes.keySet())) {
 			outcomeCategories.put(oci,outcomeCategories.size());
@@ -95,12 +91,14 @@ public final class VariableEncodings implements Serializable {
 	}
 	
 	/**
-	 * WARNING: not thread safe due to use of class shared vtmp
 	 * @param row
-	 * @return
+	 * @return can return null (on partial vectors)
 	 */
 	public SparseSemiVec vector(final BurstMap row) {
-		Arrays.fill(vtmp,0.0);
+		if(!def.completeSetOfVars(row)) {
+			return null;
+		}
+		final double[] vtmp = new double[vdim];
 		for(final VariableMapping adaption: adaptions) {
 			adaption.process(row,vtmp);
 		}

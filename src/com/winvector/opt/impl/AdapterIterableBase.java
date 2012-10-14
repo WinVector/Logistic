@@ -18,20 +18,17 @@ public abstract class AdapterIterableBase<T extends ExampleRow> implements Itera
 	}
 	
 	protected SparseExampleRow buildSparseRow(final BurstMap row) {
-		final String resStr = row.getAsString(adapter.def().resultColumn);
-		if((resStr==null)||(resStr.length()<=0)) {
-			return null;
-		}
 		final SparseSemiVec vec = adapter.vector(row);
-		if(vec==null) {
+		if(null==vec) {
 			return null;
 		}
-		final Integer category = adapter.category(resStr);
-		final int catInt;
-		if(category!=null) {
-			catInt = category;
-		} else {
-			catInt = -1; // allowed to be missing
+		int catInt = -1; // allowed to be missing
+		final String resStr = row.getAsString(adapter.def().resultColumn);
+		if((resStr!=null)&&(resStr.length()>0)) {
+			final Integer category = adapter.category(resStr);
+			if(category!=null) {
+				catInt = category;
+			}
 		}
 		return new SparseExampleRow(vec,1.0,catInt);
 	}

@@ -99,31 +99,33 @@ public class TestLRPathPlus {
 		for(final BurstMap row: trainSource) {
 			// score the standard way
 			final SparseSemiVec vec = adapter.vector(row);
-			//final String resStr = row.getAsString(adapter.def().resultColumn);
-			//final int category = adapter.category(resStr);
-			final Datum ei = new SparseExampleRow(vec,1.0,-1);
-			final double[] pred = sigmoidLoss.predict(x,ei);
-			// score via effects
-			final double[] predE = new double[adapter.outcomeCategories.entrySet().size()];
-			for(final Map.Entry<String,Integer> mc: adapter.outcomeCategories.entrySet()) {
-				//final String outcome = mc.getKey();
-				final int cati = mc.getValue();
-				final int base = cati*adapter.vdim;
-				for(final VariableMapping adaption: adapter.adaptions) {
-					final String origName = adaption.origColumn();
-					final String level = row.getAsString(origName);
-					final double effectT = adaption.effectTest(base,x,level);
-					final double effect = adaption.effect(base,x,level);
-					final double relDiff = relDiff(effect,effectT);
-					assertTrue(relDiff<1.0e-3);
-					predE[cati] += effect;
+			if(null!=vec) {
+				//final String resStr = row.getAsString(adapter.def().resultColumn);
+				//final int category = adapter.category(resStr);
+				final Datum ei = new SparseExampleRow(vec,1.0,-1);
+				final double[] pred = sigmoidLoss.predict(x,ei);
+				// score via effects
+				final double[] predE = new double[adapter.outcomeCategories.entrySet().size()];
+				for(final Map.Entry<String,Integer> mc: adapter.outcomeCategories.entrySet()) {
+					//final String outcome = mc.getKey();
+					final int cati = mc.getValue();
+					final int base = cati*adapter.vdim;
+					for(final VariableMapping adaption: adapter.adaptions) {
+						final String origName = adaption.origColumn();
+						final String level = row.getAsString(origName);
+						final double effectT = adaption.effectTest(base,x,level);
+						final double effect = adaption.effect(base,x,level);
+						final double relDiff = relDiff(effect,effectT);
+						assertTrue(relDiff<1.0e-3);
+						predE[cati] += effect;
+					}
 				}
-			}
-			HelperFns.expScale(predE);
-			assertEquals(pred.length,predE.length);
-			for(int i=0;i<pred.length;++i) {
-				final double relDiff = relDiff(pred[i],predE[i]);
-				assertTrue(relDiff<1.0e-3);
+				HelperFns.expScale(predE);
+				assertEquals(pred.length,predE.length);
+				for(int i=0;i<pred.length;++i) {
+					final double relDiff = relDiff(pred[i],predE[i]);
+					assertTrue(relDiff<1.0e-3);
+				}
 			}
 		}
 	}

@@ -30,6 +30,7 @@ import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.ExampleRow;
 import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.SparseExampleRow;
+import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
 import com.winvector.util.Ticker;
 import com.winvector.util.TrivialReader;
@@ -164,34 +165,37 @@ public class LogisticScore {
 					catInt = category;
 				}
 			}
-			final ExampleRow ei = new SparseExampleRow(model.config.vector(row),model.config.weight(row),catInt);
-			final double[] pred = sigmoidLoss.predict(model.coefs,ei);
-			final int argMax = HelperFns.argmax(pred);
-			if(null!=p) {
-				for(int i=0;i<model.config.noutcomes();++i) { // non-empty list
-					if(i!=0) {
-						p.print("\t");
+			final SparseSemiVec vector = model.config.vector(row);
+			if(null!=vector) {
+				final ExampleRow ei = new SparseExampleRow(vector,model.config.weight(row),catInt);
+				final double[] pred = sigmoidLoss.predict(model.coefs,ei);
+				final int argMax = HelperFns.argmax(pred);
+				if(null!=p) {
+					for(int i=0;i<model.config.noutcomes();++i) { // non-empty list
+						if(i!=0) {
+							p.print("\t");
+						}
+						p.print(pred[i]);
 					}
-					p.print(pred[i]);
-				}
-				p.print("\t" + model.config.outcome(argMax));
-				p.print("\t" + pred[argMax]);
-				for(final String hiK: headerFlds) {
-					String value = row.getAsString(hiK);
-					if(value==null) {
-						value = "";
+					p.print("\t" + model.config.outcome(argMax));
+					p.print("\t" + pred[argMax]);
+					for(final String hiK: headerFlds) {
+						String value = row.getAsString(hiK);
+						if(value==null) {
+							value = "";
+						}
+						p.print("\t" + value);
 					}
-					p.print("\t" + value);
+					p.println();
 				}
-				p.println();
-			}
-			if(catInt>=0) {
-				++nToCompare;
-				final boolean good = (pred!=null)&&(catInt==argMax);
-				if(good) {
-					++nRight;
+				if(catInt>=0) {
+					++nToCompare;
+					final boolean good = (pred!=null)&&(catInt==argMax);
+					if(good) {
+						++nRight;
+					}
+					confusionMatrix[argMax][catInt] += 1;
 				}
-				confusionMatrix[argMax][catInt] += 1;
 			}
 		}
 		if(null!=p) {

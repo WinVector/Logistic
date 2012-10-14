@@ -164,14 +164,16 @@ final class BObserver implements ReducibleObserver<BurstMap,BObserver> {
 			final int category = oldAdapter.category(resStr);
 			if(category>=0) {
 				final SparseSemiVec vec = oldAdapter.vector(row);
-				if(sigmoidLoss!=null) {
-					final ExampleRow ei = new SparseExampleRow(vec,weight,category);
-					sigmoidLoss.predict(oldX,ei,pred);
-				}
-				for(final String variable: stats.keySet()) {
-					final BStat btable = stats.get(variable);
-					final String level = row.getAsString(variable);
-					btable.observe(resStr,level,pred,category,weight);
+				if(null!=vec) {
+					if(sigmoidLoss!=null) {
+						final ExampleRow ei = new SparseExampleRow(vec,weight,category);
+						sigmoidLoss.predict(oldX,ei,pred);
+					}
+					for(final String variable: stats.keySet()) {
+						final BStat btable = stats.get(variable);
+						final String level = row.getAsString(variable);
+						btable.observe(resStr,level,pred,category,weight);
+					}
 				}
 			}
 		}
