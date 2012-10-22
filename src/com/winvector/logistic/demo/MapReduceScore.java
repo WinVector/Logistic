@@ -49,7 +49,6 @@ public class MapReduceScore extends Configured implements Tool {
 		final String tmpPrefix = "TMPAC_" + rand.nextLong();
 		final Configuration mrConfig = getConf();
 		log.info("start");
-		log.info("cwd: " + new File(".").getAbsolutePath());
 		log.info("reading model: " + modelFileName);
 		final Model model;
 		{
