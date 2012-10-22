@@ -35,7 +35,7 @@ public class TestRoundTrip {
 				modelFile,null);
 		final MapReduceScore mrs = new MapReduceScore();
 		mrs.setConf(new Configuration());
-		final double accuracy = mrs.run(modelFile,trainFile.getAbsolutePath(),resDir.getAbsolutePath());
+		final double accuracy = mrs.run(modelFile.getAbsolutePath(),trainFile.getAbsolutePath(),resDir.getAbsolutePath());
 		// clean up
 		modelFile.delete();
 		trainFile.delete();

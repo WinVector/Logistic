@@ -1,7 +1,6 @@
 package com.winvector.logistic.demo;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.Random;
 
@@ -9,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -36,24 +36,29 @@ public class MapReduceScore extends Configured implements Tool {
 			log.fatal("use: MapReduceScore model.ser testFile resultDir");
 			return -1;
 		}
-		final File modelFile = new File(args[0]);
+		final String modelFileName = args[0];
 		final String testFileName = args[1];
 		final String resultFileName = args[2];
-		run(modelFile,testFileName,resultFileName);
+		run(modelFileName,testFileName,resultFileName);
 		return 0;
 	}	
 		
-	public double run(final File modelFile, final String testFileName, final String resultFileName) throws Exception {
+	public double run(final String modelFileName, final String testFileName, final String resultFileName) throws Exception {
 		final Log log = LogFactory.getLog(MapReduceScore.class);
 		final Random rand = new Random();
 		final String tmpPrefix = "TMPAC_" + rand.nextLong();
 		final Configuration mrConfig = getConf();
 		log.info("start");
 		log.info("cwd: " + new File(".").getAbsolutePath());
-		log.info("reading model: " + modelFile.getAbsolutePath());
-		final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile));
-		final Model model = (Model)ois.readObject();		
-		ois.close();
+		log.info("reading model: " + modelFileName);
+		final Model model;
+		{
+			final Path modelPath = new Path(modelFileName);
+			final FSDataInputStream fdi = modelPath.getFileSystem(mrConfig).open(modelPath);
+			final ObjectInputStream ois = new ObjectInputStream(fdi);
+			model = (Model)ois.readObject();		
+			ois.close();
+		}
 		log.info("model:\n" + model.config.formatSoln(model.coefs));
 		final Path testFile = new Path(testFileName);
 		final Path resultFile = new Path(resultFileName);
