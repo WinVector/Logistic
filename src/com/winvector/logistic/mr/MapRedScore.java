@@ -21,6 +21,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import com.winvector.logistic.SigmoidLossMultinomial;
 import com.winvector.logistic.mr.MapRedFn.JobStateDescr;
 import com.winvector.opt.def.Datum;
+import com.winvector.opt.impl.HelperFns;
 import com.winvector.opt.impl.SparseExampleRow;
 import com.winvector.opt.impl.SparseSemiVec;
 import com.winvector.util.BurstMap;
@@ -80,12 +81,14 @@ public final class MapRedScore {
 			final BurstMap parsed = burster.parse(origStr);
 			if(!parsed.isEmpty()) {
 				final SparseSemiVec v = defs.vector(parsed);
-				final double wt = defs.weight(parsed);
-				if((wt>0.0)&&(v!=null)) {
+				if(v!=null) {
+					final double wt = defs.weight(parsed);
 					final int catInt = -1;
 					final Datum r = new SparseExampleRow(v,wt,catInt);
 					final double[] pred = config.underlying.predict(config.x,r);
+					final int argMax = HelperFns.argmax(pred);
 					final StringBuilder b = new StringBuilder();
+					b.append(defs.outcome(argMax) + "\t" + pred[argMax] + "\t");
 					for(final double pi: pred) {
 						b.append("" + pi + "\t");
 					}

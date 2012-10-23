@@ -69,9 +69,11 @@ public class MapReduceScore extends Configured implements Tool {
 		final LineBurster burster = new HBurster(sep,headerLine,false);
 		mrConfig.set(MapRedScan.BURSTERSERFIELD,SerialUtils.serializableToString(burster));
 		final StringBuilder b = new StringBuilder();
+		b.append("predict" + "." + model.config.def().resultColumn + "\t");
+		b.append("predict" + "." + model.config.def().resultColumn + "." + "score" + "\t");
 		for(int i=0;i<model.config.noutcomes();++i) {
 			final String cat = model.config.outcome(i);
-			b.append("predict" + "." + model.config.def().resultColumn + "." + cat + "\t");
+			b.append("predict" + "." + model.config.def().resultColumn + "." + cat + "." + "score" + "\t");
 		}
 		b.append(headerLine);
 		mrConfig.set(MapRedScore.IDEALHEADERFIELD,b.toString());
