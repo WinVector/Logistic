@@ -1,6 +1,5 @@
 package com.winvector.logistic.demo;
 
-import java.io.File;
 import java.io.ObjectInputStream;
 import java.util.Random;
 

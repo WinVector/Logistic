@@ -122,7 +122,7 @@ public class LogisticScore {
 		log.info("done LogisticScore\t" + new Date());
 	}
 	
-	// can load into DB and get marinals with SQL like: select MODEL_CHOSEN_OUTCOME,RATING,COUNT(1) from scored1 group by MODEL_CHOSEN_OUTCOME,RATING
+	// can load into DB and get marginals with SQL like: select MODEL_CHOSEN_OUTCOME,RATING,COUNT(1) from scored1 group by MODEL_CHOSEN_OUTCOME,RATING
 	public static double score(final Model model, final Iterable<BurstMap> testSource, final File resultFile) throws FileNotFoundException, IOException, ClassNotFoundException {
 		final Log log = LogFactory.getLog(LogisticScore.class);
 		final DModel<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
