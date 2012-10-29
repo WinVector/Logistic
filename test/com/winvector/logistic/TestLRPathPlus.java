@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -68,7 +69,7 @@ public class TestLRPathPlus {
 	public static ArrayList<BurstMap> readBurstFromResource(final String resourceName) throws IOException {
 		final ArrayList<BurstMap> r = new ArrayList<BurstMap>();
 		final InputStream is = TestRoundTrip.class.getClassLoader().getResourceAsStream(resourceName);
-		final Iterator<BurstMap> it = new TrivialIterator(new LineNumberReader(new InputStreamReader(is)),"\t",false,true,"res:"+resourceName);
+		final Iterator<BurstMap> it = new TrivialIterator(new LineNumberReader(new InputStreamReader(is)),Pattern.compile("\t"),false,true,"res:"+resourceName);
 		while(it.hasNext()) {
 			final BurstMap row = it.next();
 			r.add(row);

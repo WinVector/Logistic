@@ -3,6 +3,7 @@ package com.winvector.logistic.demo;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -63,8 +64,8 @@ public class MapReduceLogisticTrain extends Configured implements Tool {
 		final Path trainFile = new Path(trainFileName);
 		final Path resultFile = new Path(resultFileName);
 		final String headerLine = WritableUtils.readFirstLine(mrConfig,trainFile);
-		final String sep = "\t";
-		final LineBurster burster = new HBurster(sep,headerLine,false);
+		final Pattern sepPattern = Pattern.compile("\t");
+		final LineBurster burster = new HBurster(sepPattern,headerLine,false);
 		mrConfig.set(MapRedScan.BURSTERSERFIELD,SerialUtils.serializableToString(burster));
 		final WritableVariableList lConfig = MapRedScan.initialScan(tmpPrefix,mrConfig,
 				trainFile,formulaStr);

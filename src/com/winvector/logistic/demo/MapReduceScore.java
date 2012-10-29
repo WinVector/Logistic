@@ -2,6 +2,7 @@ package com.winvector.logistic.demo;
 
 import java.io.ObjectInputStream;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,8 +66,8 @@ public class MapReduceScore extends Configured implements Tool {
 		final SigmoidLossMultinomial underlying = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
 		final WritableVariableList lConfig = WritableVariableList.copy(model.config.def());
 		final String headerLine = WritableUtils.readFirstLine(mrConfig,testFile);
-		final String sep = "\t";
-		final LineBurster burster = new HBurster(sep,headerLine,false);
+		final Pattern sepPattern = Pattern.compile("\t");
+		final LineBurster burster = new HBurster(sepPattern,headerLine,false);
 		mrConfig.set(MapRedScan.BURSTERSERFIELD,SerialUtils.serializableToString(burster));
 		final StringBuilder b = new StringBuilder();
 		b.append("predict" + "." + model.config.def().resultColumn + "\t");
