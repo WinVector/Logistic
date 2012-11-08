@@ -58,6 +58,16 @@ public final class Formula implements Serializable {
 		variables.addAll(forcedNumeric);
 	}
 	
+	/**
+	 * skip parsing version of the formula, user code alters the variable sets after construction
+	 * @param f
+	 */
+	public Formula(final String fComment, final String resultColumn, final boolean useIntercept) {
+		this.f = fComment;
+		this.resultColumn = resultColumn;
+		this.useIntercept = useIntercept;
+	}
+	
 	public SortedSet<String> allTerms() {
 		final SortedSet<String> allTerms = new TreeSet<String>();
 		allTerms.add(resultColumn);

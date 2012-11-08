@@ -302,7 +302,7 @@ public class LogisticTrain {
 	}
 
 	public Model train(final Iterable<BurstMap> trainSource, final Formula f, final String weightKey) {
-		final Log log = LogFactory.getLog(this.getClass());
+		final Log log = LogFactory.getLog(LogisticTrain.class);
 		final VariableEncodings adapter = buildAdpater(f,weightKey,trainSource);
 		final Iterable<ExampleRow> asTrain = new ExampleRowIterable(adapter,trainSource);
 		final LinearContribution<ExampleRow> sigmoidLoss = new SigmoidLossMultinomial(adapter.dim(),adapter.noutcomes());
