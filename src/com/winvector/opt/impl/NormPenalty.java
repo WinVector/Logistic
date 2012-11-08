@@ -13,10 +13,26 @@ import com.winvector.variables.VariableMapping;
  *
  */
 public class NormPenalty implements VectorFn {
-	private final BitSet skip = new BitSet();
+	private final BitSet skip;
 	private final double regularizeTerm;
 	private final int dim;
+
+	/**
+	 * 
+	 * @param dim
+	 * @param regularizeTerm
+	 * @param skip indices to not normalize
+	 */
+	public NormPenalty(final int dim, final double regularizeTerm, final BitSet skip) {
+		this.dim = dim;
+		this.regularizeTerm = regularizeTerm;
+		this.skip = skip;
+	}
 	
+	public NormPenalty(final int dim, final double regularizeTerm) {
+		this(dim,regularizeTerm,(BitSet)null);
+	}
+
 	/**
 	 * 
 	 * @param dim
@@ -26,6 +42,7 @@ public class NormPenalty implements VectorFn {
 	public NormPenalty(final int dim, final double regularizeTerm, final ArrayList<VariableMapping> adaptions) {
 		this.dim = dim;
 		this.regularizeTerm = regularizeTerm;
+		skip = new BitSet();
 		if(null!=adaptions) {
 			for(final VariableMapping ai: adaptions) {
 				if(!ai.wantRegularization()) {
@@ -47,7 +64,7 @@ public class NormPenalty implements VectorFn {
 		final VEval r = new VEval(x,wantGrad,wantHessian);
 		if(regularizeTerm>0.0) {
 			for(int i=0;i<dim;++i) {
-				if(!skip.get(i)) {
+				if((skip==null)||(!skip.get(i))) {
 					final double xi = x[i];
 					r.fx += -regularizeTerm*xi*xi;
 					if(wantGrad) {
