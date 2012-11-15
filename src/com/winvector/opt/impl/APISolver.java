@@ -15,7 +15,7 @@ import com.winvector.opt.def.LinearSolver;
  *
  */
 public class APISolver implements LinearSolver {
-	private final Algebra algebra = Algebra.DEFAULT;
+	private final Algebra algebra = Algebra.ZERO;
 	private final double epsilon = 1.0e-5;
 
 	@Override

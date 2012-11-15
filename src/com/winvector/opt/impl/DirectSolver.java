@@ -11,7 +11,7 @@ import com.winvector.opt.def.LinearSolver;
  *
  */
 public final class DirectSolver implements LinearSolver {
-	private final Algebra algebra = Algebra.DEFAULT;
+	private final Algebra algebra = Algebra.ZERO;
 
 	@Override
 	public double[] solve(final double[][] a, final double[] b) {
