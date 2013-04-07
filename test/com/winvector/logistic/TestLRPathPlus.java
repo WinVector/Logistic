@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.ObjectInputStream;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -24,10 +23,6 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
-import com.winvector.db.DBIterable;
-import com.winvector.db.DBUtil;
-import com.winvector.db.DBUtil.DBHandle;
-import com.winvector.db.LoadTable;
 import com.winvector.logistic.mr.TestRoundTrip;
 import com.winvector.opt.def.DModel;
 import com.winvector.opt.def.Datum;
@@ -311,61 +306,5 @@ public class TestLRPathPlus {
 			final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,asTrain,opt.x);
 			System.out.println("train accuracy:" + trainAccuracy);
 		}
-	}
-	
-	@Test
-	public void testDBPath() throws Exception {
-		// build DB connection
-		final String comment = "test";
-		final String dbUserName = "";
-		final String dbPassword = "";
-		final String driver = "org.h2.Driver";
-		final File tmpFile = File.createTempFile("TestH2DB",".dir");
-		tmpFile.delete();
-		tmpFile.mkdirs();
-		final String dbURL = "jdbc:h2:/" + (new File(tmpFile,"H2DB")).getAbsolutePath() + ";LOG=0;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0";
-		final boolean readOnly = false;
-		final DBHandle handle = DBUtil.buildConnection(comment,
-				dbUserName,
-				dbPassword,
-				dbURL,
-				driver,
-				readOnly);
-		// copy data into table
-		System.out.println("test db: " + handle);
-		final String tableName = "testTable";
-		final Iterable<BurstMap> source = TestLRPathPlus.readBurstFromResource("com/winvector/logistic/uciCarTrain.tsv");
-		LoadTable.loadTable(source, null, tableName, handle);
-		// set up formula
-		final String formulaStr = "rating ~ buying + maintenance + doors + persons + lug_boot + safety";
-		final Formula f = new Formula(formulaStr);
-		// bring data back out of table
-		final Statement stmt = handle.conn.createStatement();
-		final StringBuilder query = new StringBuilder();
-		query.append("SELECT ");
-		{
-			boolean first = true;
-			for(final String term: f.allTerms()) {
-				if(first) {
-					first = false;
-				} else {
-					query.append(",");
-				}
-				query.append(term);
-			}
-		}
-		query.append(" FROM ");
-		query.append(tableName);
-		final Iterable<BurstMap> trainSource = new DBIterable(stmt,query.toString());
-		final Model model = (new LogisticTrainPlus()).train(trainSource,f,null);
-		final SigmoidLossMultinomial sigmoidLoss = new SigmoidLossMultinomial(model.config.dim(),model.config.noutcomes());
-		final double trainAccuracy = HelperFns.accuracy(sigmoidLoss,new ExampleRowIterable(model.config,trainSource),model.coefs);
-		assertTrue(trainAccuracy>0.965);
-		handle.conn.close();
-		// clean up
-		for(final File ci: tmpFile.listFiles()) {
-			ci.delete();
-		}
-		tmpFile.delete();
 	}
 }
