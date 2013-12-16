@@ -7,7 +7,7 @@ The experimental class LogisticTrainPlus allows useful encoding of an
 arbitrary number of categorical levels. See:
 http://www.win-vector.com/blog/2012/08/a-bit-more-on-impact-coding/ All
 material copyright Win-Vector LLC and distributed with license: GPLv3
-(see: http//www.gnu.org/copyleft/gpl.html ). This is
+(see: http://www.gnu.org/copyleft/gpl.html ). This is
 demonstration/experimental code. If you just want to try out standard
 logistic regression without Hadoop use R ( http://cran.r-project.org ).
 You may also want to consider Apache's Mahout which does do logistic
@@ -106,9 +106,9 @@ Hadoop):
     class paths directly. In our shell (bash on OSX) we set our class
     variable as follows:
 
-    > `   CLASSES="/Users/johnmount/project/hadoop-1.0.3/lib/commons-logging-1.1.1.jar:/Users/johnmount/project/hadoop-1.0.3/lib/commons-logging-api-1.0.4.jar:/Users/johnmount/project/hadoop-1.0.3/lib/commons-cli-1.2.jar:/Users/johnmount/project/Logistic/bin:/Users/johnmount/project/Colt-1.2.0/bin:/Users/johnmount/project/SQLScrewdriver/bin"`
+    > `   CLASSES="hadoop-1.0.3/lib/commons-logging-1.1.1.jar:hadoop-1.0.3/lib/commons-logging-api-1.0.4.jar:hadoop-1.0.3/lib/commons-cli-1.2.jar:Logistic/bin:Colt-1.2.0/bin:SQLScrewdriver/bin"`
 
-    We are using where we put the files "/Users/johnmount/project/" and
+    We are using paths where we put the files hadoop and
     the path separator ":" (separator is ";" on Windows). The path you
     would use would depend on where you put the files you downloaded.
 
@@ -168,12 +168,12 @@ code and free portions of the COLT library (pre built:
 WinVectorLogistic.Hadoop0.20.2.jar). Make sure the training file is
 tab-separated (instead of comma separated). For example the iris data in
 such a format is here: iris.data.tsv Run the Hadoop version of the
-trainer: /Users/johnmount/project/hadoop-1.0.3/bin/hadoop jar
-/Users/johnmount/project/Logistic/WinVectorLogistic.Hadoop0.20.2.jar
+trainer: hadoop-1.0.3/bin/hadoop jar
+Logistic/WinVectorLogistic.Hadoop0.20.2.jar
 logistictrain iris.data.tsv "TrainingClass \~ SepalLength + SepalWidth +
 PetalLength + PetalWidth" iris\_model.ser Run the Hadoop version of the
-scorring function: /Users/johnmount/project/hadoop-1.0.3/bin/hadoop jar
-/Users/johnmount/project/Logistic/WinVectorLogistic.Hadoop0.20.2.jar
+scorring function: hadoop-1.0.3/bin/hadoop jar
+Logistic/WinVectorLogistic.Hadoop0.20.2.jar
 logisticscore iris\_model.ser iris.data.tsv scoreDir Scored output is
 left in Hadoop format in the user specified scoreDir (slightly different
 format than the stand-alone programs). The passes take quite a long time
